@@ -5,3 +5,7 @@ md_replay
 md_replay_unittest
 md_replay.exe
 md_replay_unittest.exe
+.cproject
+.project
+.settings
+

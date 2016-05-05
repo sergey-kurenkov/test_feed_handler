@@ -78,10 +78,10 @@ feed_handler::process_command(const std::string& line) {
         process_unsubs_bbo(line);
         break;
     case command_t::subs_vwap:
-        //process_subs_vwap(line);
+        process_subs_vwap(line);
         break;
     case command_t::unsubs_vwap:
-        //process_unsubs_vwap(line);
+        process_unsubs_vwap(line);
         break;
     case command_t::print:
         print(line);
@@ -95,6 +95,9 @@ feed_handler::process_command(const std::string& line) {
     }
     if (!bbo_subs.empty()) {
         print_bbo_subs();
+    }
+    if (!vwap_subs.empty()) {
+        print_vwap_subs();
     }
 }
 
@@ -250,7 +253,6 @@ feed_handler::process_subs_bbo(const std::string& line) {
         err_callback(line, "not a selected symbol: " + selected_symbol);
         return;
     }
-
     ++bbo_subs[symbol];
 }
 
@@ -272,12 +274,73 @@ feed_handler::process_unsubs_bbo(const std::string& line) {
         return;
     }
 
+    decrement_bbo(symbol);
+}
+
+/*
+ *
+ */
+void tbricks_test::
+feed_handler::process_subs_vwap(const std::string& line) {
+    args_t args;
+    auto res = parse_args(line, 2, &args);
+    if (!res) {
+        err_callback(line, "invalid number of parameters");
+        return;
+    }
+
+    symbol_t symbol;
+    if (!str_to_symbol(args[0], &symbol)) {
+        err_callback(line, "invalid symbol");
+        return;
+    }
+
+    quantity_t quantity;
+    if (!str_to_quantity(args[1], &quantity)) {
+        err_callback(line, "invalid quantity");
+        return;
+    }
+
     if (!should_keep_symbol(symbol)) {
         err_callback(line, "not a selected symbol: " + selected_symbol);
         return;
     }
 
-    decrement_bbo(symbol);
+    ++vwap_subs[std::make_pair(symbol, quantity)];
+}
+
+/*
+ *
+ */
+void tbricks_test::
+feed_handler::process_unsubs_vwap(const std::string& line) {
+    args_t args;
+    auto res = parse_args(line, 2, &args);
+    if (!res) {
+        err_callback(line, "invalid number of parameters");
+        return;
+    }
+
+    symbol_t symbol;
+    if (!str_to_symbol(args[0], &symbol)) {
+        err_callback(line, "invalid symbol");
+        return;
+    }
+
+    quantity_t quantity;
+    if (!str_to_quantity(args[1], &quantity)) {
+        err_callback(line, "invalid quantity");
+        return;
+    }
+
+    auto itr = vwap_subs.find(std::make_pair(symbol, quantity));
+    if (itr != vwap_subs.end()) {
+        if (itr->second <= 1) {
+            vwap_subs.erase(itr);
+        } else {
+            --itr->second;
+        }
+    }
 }
 
 /*
@@ -304,11 +367,36 @@ feed_handler::get_bbo_subs_number(const symbol_t& s) const {
 /*
  *
  */
+unsigned tbricks_test::
+feed_handler::get_total_number_vwap_subs() const {
+    return vwap_subs.size();
+}
+
+/*
+ *
+ */
+unsigned tbricks_test::
+feed_handler::get_vwap_subs_number(const symbol_t& s, quantity_t q) const {
+    auto itr = vwap_subs.find(std::make_pair(s, q));
+    if (itr != vwap_subs.end()) {
+        return itr->second;
+    } else {
+        return 0;
+    }
+}
+
+/*
+ *
+ */
 void tbricks_test::
 feed_handler::decrement_bbo(const symbol_t& s) {
     auto itr = bbo_subs.find(s);
-    if (itr != bbo_subs.end() && itr->second <= 1) {
-        bbo_subs.erase(itr);
+    if (itr != bbo_subs.end()) {
+        if (itr->second <= 1) {
+            bbo_subs.erase(itr);
+        } else {
+            --itr->second;
+        }
     }
 }
 
@@ -351,6 +439,43 @@ feed_handler::print_bbo_subs() const {
     }
 }
 
+/*
+ *
+ */
+void tbricks_test::
+feed_handler::print_vwap_subs() const {
+    std::ostringstream ss;
+    for (auto const & vwap_and_ref : vwap_subs) {
+        auto const & symbol = vwap_and_ref.first.first;
+        auto const & quantity = vwap_and_ref.first.second;
+        ss.str("");
+
+        if (!is_there_order_book(symbol)) {
+            ss << "VWAP: " << std::left << std::setw(10) << symbol
+               << " <NIL,NIL>";
+            callback(ss.str());
+            continue;
+        }
+        auto const & order_book = get_order_book_ref(symbol);
+        vwap_t vwap;
+        order_book.get_vwap(quantity, &vwap);
+
+        ss << "VWAP: " << std::left << std::setw(10) << symbol << " <";
+        if (vwap.buy.valid) {
+            ss << vwap.buy.price;
+        } else {
+            ss << "NIL";
+        }
+        ss << ",";
+        if (vwap.sell.valid) {
+            ss << vwap.sell.price;
+        } else {
+            ss << "NIL";
+        }
+        ss << ">";
+        callback(ss.str());
+    }
+}
 
 /*
  *
@@ -906,3 +1031,80 @@ order_book::get_bbo(bbo_t* bbo) const {
                 get_volume_price(sell_itr->first, sell_itr->second));
     }
 }
+
+/*
+ *
+ */
+void tbricks_test::
+order_book::get_vwap(quantity_t quantity, vwap_t* vwap) const {
+    vwap->quantity = quantity;
+    if (bids.begin() == bids.end()) {
+        vwap->buy = {false, 0.};
+    } else {
+        quantity_t found_quantity = 0;
+        double found_cost  = 0;
+        for (auto & a_group : bids) {
+            double current_price = a_group.first;
+            auto & order_ids = a_group.second;
+            for (auto order_id : order_ids)  {
+                auto itr = orders.find(order_id);
+                assert(itr != orders.end());
+                auto & order = itr->second;
+                assert(current_price == order.price);
+                assert(side_t::buy == order.side);
+                found_quantity += order.quantity;
+                if (found_quantity >= quantity) {
+                    auto diff = found_quantity - quantity;
+                    found_cost += (order.quantity-diff) * order.price;
+                    break;
+                } else {
+                    found_cost += order.quantity * order.price;
+                }
+            }
+            if (found_quantity >= quantity) {
+                break;
+            }
+        }
+        if (found_quantity >= quantity) {
+            double a_price = found_cost / quantity;
+            vwap->buy = {true, a_price};
+        } else {
+            vwap->buy = {false, 0.};
+        }
+    }
+    if (sales.begin() == sales.end()) {
+        vwap->sell = {false, 0.};
+    } else {
+        quantity_t found_quantity = 0;
+        double found_cost  = 0;
+        for (auto & a_group : sales) {
+            double current_price = a_group.first;
+            auto & order_ids = a_group.second;
+            for (auto order_id : order_ids)  {
+                auto itr = orders.find(order_id);
+                assert(itr != orders.end());
+                auto & order = itr->second;
+                assert(side_t::sell == order.side);
+                assert(current_price == order.price);
+                found_quantity += order.quantity;
+                if (found_quantity >= quantity) {
+                    auto diff = found_quantity - quantity;
+                    found_cost += (order.quantity-diff) * order.price;
+                    break;
+                } else {
+                    found_cost += order.quantity * order.price;
+                }
+            }
+            if (found_quantity >= quantity) {
+                break;
+            }
+        }
+        if (found_quantity >= quantity) {
+            double a_price = found_cost / quantity;
+            vwap->sell = {true, a_price};
+        } else {
+            vwap->buy = {false, 0. };
+        }
+    }
+}
+

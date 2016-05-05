@@ -75,9 +75,26 @@ using get_price_levels_callback_t =
 using get_orders_callback_t =
         std::function<void()>;
 
+/*
+ *
+ */
 struct bbo_t {
     price_level_t buy;
     price_level_t sell;
+};
+
+/*
+ *
+ */
+struct optional_price_t {
+    bool valid;
+    double price;
+};
+
+struct vwap_t {
+    quantity_t quantity;
+    optional_price_t buy;
+    optional_price_t sell;
 };
 
 /*
@@ -94,6 +111,7 @@ class order_book {
     void get_price_levels(get_price_levels_callback_t&&) const;
     void get_orders(get_orders_callback_t&&) const;
     void get_bbo(bbo_t*) const;
+    void get_vwap(quantity_t, vwap_t*) const;
  private:
     using orders_t = std::unordered_map<order_id_t, order_t>;
     using order_ids_t = std::set<order_id_t>;
@@ -132,11 +150,14 @@ class feed_handler {
     symbol_t get_symbol_for_order(order_id_t id) const;
     unsigned get_total_number_bbo_subs() const;
     unsigned get_bbo_subs_number(const symbol_t&) const;
+    unsigned get_total_number_vwap_subs() const;
+    unsigned get_vwap_subs_number(const symbol_t&, quantity_t) const;
 
  private:
     using order_books_t = std::unordered_map<symbol_t, order_book>;
     using order_id_symbols_t = std::unordered_map<order_id_t, symbol_t>;
-    using bbo_subs_t = std::unordered_map<symbol_t, int>;
+    using bbo_subs_t = std::map<symbol_t, int>;
+    using vwap_subs_t = std::map<std::pair<symbol_t, quantity_t>, int>;
     using vwap_key_t = std::pair<symbol_t, quantity_t>;
     using args_t = std::vector<std::string>;
     callback_t callback;
@@ -145,6 +166,7 @@ class feed_handler {
     order_books_t order_books;
     order_id_symbols_t order_id_symbols;
     bbo_subs_t bbo_subs;
+    vwap_subs_t vwap_subs;
     command_t parse_command(const std::string& line);
     bool parse_args(const std::string& line, unsigned number, args_t*) const;
     void process_order_add(const std::string& line);
@@ -152,8 +174,11 @@ class feed_handler {
     void process_order_cancel(const std::string& line);
     void process_subs_bbo(const std::string& line);
     void process_unsubs_bbo(const std::string& line);
+    void process_subs_vwap(const std::string& line);
+    void process_unsubs_vwap(const std::string& line);
     void decrement_bbo(const symbol_t&);
     void print_bbo_subs() const;
+    void print_vwap_subs() const;
     static bool str_to_order_id(const std::string&, order_id_t*);
     static bool str_to_symbol(const std::string&, symbol_t*);
     static bool str_to_side(const std::string&, side_t*);

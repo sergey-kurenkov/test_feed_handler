@@ -536,6 +536,12 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         ASSERT_TRUE(a_test_object.output.empty());
         ASSERT_TRUE(a_test_object.errors.empty());
 
+        a_handler.process_command("SUBSCRIBE BBO,S1");
+        ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 1);
+        ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 2);
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,10.1");
         ASSERT_EQ(a_test_object.output.size(), 1);
         ASSERT_TRUE(a_test_object.errors.empty());
@@ -551,6 +557,13 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         a_test_object.output.clear();
 
         a_handler.process_command("UNSUBSCRIBE BBO,S1");
+        ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 1);
+        ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("UNSUBSCRIBE BBO,S1");
         ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 0);
         ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 0);
         ASSERT_TRUE(a_test_object.output.empty());
@@ -561,6 +574,90 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         ASSERT_TRUE(a_test_object.output.empty());
         ASSERT_TRUE(a_test_object.errors.empty());
 
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, VWAPBuyOnly) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_handler.process_command("SUBSCRIBE VWAP,S1,5");
+        PRINT_CALLBACK_ERRORS;
+        std::ostringstream expected_ouput;
+        expected_ouput << "VWAP: " << std::left << std::setw(10) << "S1"
+                << " <NIL,NIL>";
+        ASSERT_STREQ(a_test_object.output[0].c_str(),
+                expected_ouput.str().c_str());
+        a_test_object.output.clear();
+
+        a_handler.process_command("ORDER ADD,1,S1,Buy,10,72.82");
+        a_test_object.output.clear();
+
+        a_handler.process_command("ORDER ADD,2,S1,Buy,100,72.81");
+        expected_ouput.str("");
+        expected_ouput << "VWAP: " << std::left << std::setw(10) << "S1"
+                << " <" << 72.82 <<  ",NIL>";
+        ASSERT_STREQ(a_test_object.output[0].c_str(),
+                expected_ouput.str().c_str());
+
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, SubsAddOrderUnsubsVWAP) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+
+        ASSERT_EQ(a_handler.get_total_number_vwap_subs(), 0);
+        ASSERT_EQ(a_handler.get_vwap_subs_number("S1", 5), 0);
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("SUBSCRIBE VWAP,S1,5");
+        ASSERT_EQ(a_handler.get_total_number_vwap_subs(), 1);
+        ASSERT_EQ(a_handler.get_vwap_subs_number("S1", 5), 1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("SUBSCRIBE VWAP,S1,5");
+        ASSERT_EQ(a_handler.get_total_number_vwap_subs(), 1);
+        ASSERT_EQ(a_handler.get_vwap_subs_number("S1", 5), 2);
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("ORDER ADD,1,S1,Buy,10,72.82");
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("ORDER ADD,2,S1,Buy,100,72.81");
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("UNSUBSCRIBE VWAP,S1,5");
+        ASSERT_EQ(a_handler.get_total_number_vwap_subs(), 1);
+        ASSERT_EQ(a_handler.get_vwap_subs_number("S1", 5), 1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_test_object.output.clear();
+
+        a_handler.process_command("UNSUBSCRIBE VWAP,S1,5");
+        ASSERT_EQ(a_handler.get_total_number_vwap_subs(), 0);
+        ASSERT_EQ(a_handler.get_vwap_subs_number("S1", 5), 0);
+        ASSERT_EQ(a_test_object.output.size(), 0);
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("ORDER ADD,30,S1,Buy,20,10.1");
+        a_handler.process_command("ORDER ADD,40,S1,Sell,20,10.1");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -952,6 +1049,91 @@ TEST(OrderBook, CancelOrderSell) {
         an_order_book.cancel_order(111);
         order_1 = an_order_book.get_order(111);
         ASSERT_FALSE(order_1.first);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, VWAPBuyOnly) {
+    try {
+        tbricks_test::order_book an_order_book{test_symbol_1};
+
+        tbricks_test::vwap_t vwap;
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, false);
+        ASSERT_EQ(vwap.sell.valid, false);
+
+        an_order_book.add_order(5, tbricks_test::side_t::buy, 10, 72.82);
+        an_order_book.add_order(6, tbricks_test::side_t::buy, 100, 72.81);
+
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, true);
+        ASSERT_EQ(vwap.buy.price, 72.82);
+        ASSERT_EQ(vwap.sell.valid, false);
+
+        an_order_book.get_vwap(20, &vwap);
+        ASSERT_EQ(vwap.buy.valid, true);
+        ASSERT_EQ(vwap.buy.price, 72.815);
+        ASSERT_EQ(vwap.sell.valid, false);
+
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, VWAPSellOnly) {
+    try {
+        tbricks_test::order_book an_order_book{test_symbol_1};
+
+        tbricks_test::vwap_t vwap;
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, false);
+        ASSERT_EQ(vwap.sell.valid, false);
+
+        an_order_book.add_order(6, tbricks_test::side_t::sell, 10, 100.);
+        an_order_book.add_order(5, tbricks_test::side_t::sell, 20, 200.);
+
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, false);
+        ASSERT_EQ(vwap.sell.valid, true);
+        ASSERT_EQ(vwap.sell.price, 100.);
+
+        an_order_book.get_vwap(20, &vwap);
+        ASSERT_EQ(vwap.buy.valid, false);
+        ASSERT_EQ(vwap.sell.valid, true);
+        ASSERT_EQ(vwap.sell.price, 150.);
+
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, VWAPBuyAndSell) {
+    try {
+        tbricks_test::order_book an_order_book{test_symbol_1};
+
+        tbricks_test::vwap_t vwap;
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, false);
+        ASSERT_EQ(vwap.sell.valid, false);
+
+        an_order_book.add_order(1, tbricks_test::side_t::buy, 10, 72.82);
+        an_order_book.add_order(2, tbricks_test::side_t::buy, 100, 72.81);
+        an_order_book.add_order(3, tbricks_test::side_t::sell, 10, 100.);
+        an_order_book.add_order(4, tbricks_test::side_t::sell, 20, 200.);
+
+        an_order_book.get_vwap(5, &vwap);
+        ASSERT_EQ(vwap.buy.valid, true);
+        ASSERT_EQ(vwap.buy.price, 72.82);
+        ASSERT_EQ(vwap.sell.valid, true);
+        ASSERT_EQ(vwap.sell.price, 100.);
+
+        an_order_book.get_vwap(20, &vwap);
+        ASSERT_EQ(vwap.buy.valid, true);
+        ASSERT_EQ(vwap.buy.price, 72.815);
+        ASSERT_EQ(vwap.sell.valid, true);
+        ASSERT_EQ(vwap.sell.price, 150.);
+
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
