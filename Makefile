@@ -14,7 +14,41 @@
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-GTEST_DIR = ./googletest/googletest
+
+PLATFORM=UNKNOWN_OS
+ifeq ($(shell uname), Linux)
+  PLATFORM=linux
+endif
+ifeq ($(shell uname), CYGWIN_NT-4.0)
+  PLATFORM=win32
+endif
+ifeq ($(shell uname), CYGWIN_NT-5.0)
+  PLATFORM=win32
+endif
+ifeq ($(shell uname), CYGWIN_NT-5.1)
+  PLATFORM=win32
+endif
+ifeq ($(shell uname), MINGW32_NT-4.0)
+  PLATFORM=win32
+endif
+ifeq ($(shell uname), MINGW32-5.0)
+  PLATFORM=win32
+endif
+ifeq ($(shell uname), MINGW32_NT-5.1)
+  PLATFORM=win32
+endif
+
+ifeq "$(PLATFORM)" "UNKNOWN_OS"
+    $(error Unknown OS)
+endif
+
+ifeq "$(PLATFORM)" "linux"
+    GTEST_DIR = ./googletest/googletest
+endif
+
+ifeq "$(PLATFORM)" "win32"
+    GTEST_DIR = ./googletest.win/googletest
+endif
 
 # Where to find user code.
 USER_DIR = .
@@ -25,7 +59,11 @@ USER_DIR = .
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -std=gnu++0x -g -Wall -Wextra -pthread
+ifeq "$(PLATFORM)" "linux"
+    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread
+else
+    CXXFLAGS += -std=gnu++0x -g -Wall -Wextra -pthread
+endif
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
@@ -71,7 +109,9 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-RPATH = -Wl,-rpath,$(shell dirname $(shell which gcc))/../lib64
+ifeq "$(PLATFORM)" "linux"
+    RPATH = -Wl,-rpath,$(shell dirname $(shell which gcc))/../lib64
+endif
 
 feed_handler.o : $(USER_DIR)/feed_handler.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler.cpp
