@@ -71,6 +71,8 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
+RPATH = -Wl,-rpath,$(shell dirname $(shell which gcc))/../lib64
+
 feed_handler.o : $(USER_DIR)/feed_handler.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler.cpp
 
@@ -82,7 +84,7 @@ feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler_unittest.cpp
 
 md_replay_unittest : feed_handler.o feed_handler_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@ $(RPATH)
 
 md_replay : md_replay.o feed_handler.o
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@ $(RPATH)
