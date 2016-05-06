@@ -11,7 +11,7 @@
 /*
  *
  */
-tbricks_test::
+test_ns::
 feed_handler::feed_handler(const std::string& selected_symbol,
         callback_t&& a_callback, err_callback_t&& an_err_callback) :
         callback(std::move(a_callback)),
@@ -24,22 +24,22 @@ feed_handler::feed_handler(const std::string& selected_symbol,
  */
 
 static
-std::unordered_map<std::string, tbricks_test::command_t> string_to_cmd = {
-        { "ORDER ADD", tbricks_test::command_t::order_add },
-        { "ORDER MODIFY", tbricks_test::command_t::order_modify },
-        { "ORDER CANCEL", tbricks_test::command_t::order_cancel},
-        { "SUBSCRIBE BBO", tbricks_test::command_t::subs_bbo },
-        { "UNSUBSCRIBE BBO", tbricks_test::command_t::unsubs_bbo },
-        { "SUBSCRIBE VWAP", tbricks_test::command_t::subs_vwap },
-        { "UNSUBSCRIBE VWAP", tbricks_test::command_t::unsubs_vwap },
-        { "PRINT", tbricks_test::command_t::print },
-        { "PRINT_FULL", tbricks_test::command_t::print_full }
+std::unordered_map<std::string, test_ns::command_t> string_to_cmd = {
+        { "ORDER ADD", test_ns::command_t::order_add },
+        { "ORDER MODIFY", test_ns::command_t::order_modify },
+        { "ORDER CANCEL", test_ns::command_t::order_cancel},
+        { "SUBSCRIBE BBO", test_ns::command_t::subs_bbo },
+        { "UNSUBSCRIBE BBO", test_ns::command_t::unsubs_bbo },
+        { "SUBSCRIBE VWAP", test_ns::command_t::subs_vwap },
+        { "UNSUBSCRIBE VWAP", test_ns::command_t::unsubs_vwap },
+        { "PRINT", test_ns::command_t::print },
+        { "PRINT_FULL", test_ns::command_t::print_full }
 };
 
 /*
  *
  */
-tbricks_test::command_t tbricks_test::
+test_ns::command_t test_ns::
 feed_handler::parse_command(const std::string& line) {
     if (line.empty())
         return command_t::none;
@@ -54,7 +54,7 @@ feed_handler::parse_command(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_command(const std::string& line) {
     command_t command = parse_command(line);
     if (command == command_t::none) {
@@ -104,7 +104,7 @@ feed_handler::process_command(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_order_add(const std::string& line) {
     args_t args;
     if (!parse_args(line, 5, &args)) {
@@ -157,7 +157,7 @@ feed_handler::process_order_add(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_order_modify(const std::string& line) {
     args_t args;
     if (!parse_args(line, 3, &args)) {
@@ -201,7 +201,7 @@ feed_handler::process_order_modify(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_order_cancel(const std::string& line) {
     args_t args;
     if (!parse_args(line, 1, &args)) {
@@ -234,7 +234,7 @@ feed_handler::process_order_cancel(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_subs_bbo(const std::string& line) {
     args_t args;
     auto res = parse_args(line, 1, &args);
@@ -259,7 +259,7 @@ feed_handler::process_subs_bbo(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_unsubs_bbo(const std::string& line) {
     args_t args;
     auto res = parse_args(line, 1, &args);
@@ -280,7 +280,7 @@ feed_handler::process_unsubs_bbo(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_subs_vwap(const std::string& line) {
     args_t args;
     auto res = parse_args(line, 2, &args);
@@ -312,7 +312,7 @@ feed_handler::process_subs_vwap(const std::string& line) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::process_unsubs_vwap(const std::string& line) {
     args_t args;
     auto res = parse_args(line, 2, &args);
@@ -346,7 +346,7 @@ feed_handler::process_unsubs_vwap(const std::string& line) {
 /*
  *
  */
-unsigned tbricks_test::
+unsigned test_ns::
 feed_handler::get_total_number_bbo_subs() const {
     return bbo_subs.size();
 }
@@ -354,7 +354,7 @@ feed_handler::get_total_number_bbo_subs() const {
 /*
  *
  */
-unsigned tbricks_test::
+unsigned test_ns::
 feed_handler::get_bbo_subs_number(const symbol_t& s) const {
     auto itr = bbo_subs.find(s);
     if (itr != bbo_subs.end()) {
@@ -367,7 +367,7 @@ feed_handler::get_bbo_subs_number(const symbol_t& s) const {
 /*
  *
  */
-unsigned tbricks_test::
+unsigned test_ns::
 feed_handler::get_total_number_vwap_subs() const {
     return vwap_subs.size();
 }
@@ -375,7 +375,7 @@ feed_handler::get_total_number_vwap_subs() const {
 /*
  *
  */
-unsigned tbricks_test::
+unsigned test_ns::
 feed_handler::get_vwap_subs_number(const symbol_t& s, quantity_t q) const {
     auto itr = vwap_subs.find(std::make_pair(s, q));
     if (itr != vwap_subs.end()) {
@@ -388,7 +388,7 @@ feed_handler::get_vwap_subs_number(const symbol_t& s, quantity_t q) const {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::decrement_bbo(const symbol_t& s) {
     auto itr = bbo_subs.find(s);
     if (itr != bbo_subs.end()) {
@@ -403,7 +403,7 @@ feed_handler::decrement_bbo(const symbol_t& s) {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::print_bbo_subs() const {
     std::ostringstream ss, field1, field2;
     for (auto const & sym_and_ref : bbo_subs) {
@@ -442,7 +442,7 @@ feed_handler::print_bbo_subs() const {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::print_vwap_subs() const {
     std::ostringstream ss;
     for (auto const & vwap_and_ref : vwap_subs) {
@@ -480,7 +480,7 @@ feed_handler::print_vwap_subs() const {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::print(const symbol_t& line) const {
     args_t args;
     if (!parse_args(line, 1, &args)) {
@@ -526,7 +526,7 @@ feed_handler::print(const symbol_t& line) const {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 feed_handler::print_full(const symbol_t& symbol) const {
     if (!should_keep_symbol(symbol)) {
         return;
@@ -543,7 +543,7 @@ feed_handler::print_full(const symbol_t& symbol) const {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::parse_args(const std::string& line,
         unsigned number_args, args_t* args) const {
     args->clear();
@@ -573,7 +573,7 @@ feed_handler::parse_args(const std::string& line,
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::str_to_order_id(const std::string& token, order_id_t* id) {
     std::istringstream ss(token);
     ss >> *id;
@@ -583,7 +583,7 @@ feed_handler::str_to_order_id(const std::string& token, order_id_t* id) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::str_to_symbol(const std::string& token, symbol_t* symbol) {
     if (token.empty())
         return false;
@@ -594,7 +594,7 @@ feed_handler::str_to_symbol(const std::string& token, symbol_t* symbol) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::str_to_side(const std::string& token, side_t* side) {
     if ( token == "Buy" ) {
         *side = side_t::buy;
@@ -610,7 +610,7 @@ feed_handler::str_to_side(const std::string& token, side_t* side) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::str_to_quantity(const std::string& token, quantity_t* quantity) {
     std::istringstream ss(token);
     ss >> *quantity;
@@ -620,7 +620,7 @@ feed_handler::str_to_quantity(const std::string& token, quantity_t* quantity) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::str_to_price(const std::string& token, double* price) {
     std::istringstream ss(token);
     ss >> *price;
@@ -630,7 +630,7 @@ feed_handler::str_to_price(const std::string& token, double* price) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::is_there_selected_symbol() const {
     return !selected_symbol.empty();
 }
@@ -638,7 +638,7 @@ feed_handler::is_there_selected_symbol() const {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::should_keep_symbol(const std::string& symbol) const {
     if (selected_symbol.empty()) {
         return true;
@@ -650,7 +650,7 @@ feed_handler::should_keep_symbol(const std::string& symbol) const {
 /*
  *
  */
-tbricks_test::order_book& tbricks_test::
+test_ns::order_book& test_ns::
 feed_handler::get_order_book(const std::string& symbol) {
     auto itr = order_books.find(symbol);
     if (itr == order_books.end()) {
@@ -666,7 +666,7 @@ feed_handler::get_order_book(const std::string& symbol) {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::is_there_order_book(const std::string& symbol) const {
     return order_books.find(symbol) != order_books.end();
 }
@@ -674,7 +674,7 @@ feed_handler::is_there_order_book(const std::string& symbol) const {
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::is_there_order_book(const order_id_t& id) const {
     auto itr = order_id_symbols.find(id);
     if (itr != order_id_symbols.end()) {
@@ -687,7 +687,7 @@ feed_handler::is_there_order_book(const order_id_t& id) const {
 /*
  *
  */
-tbricks_test::order_book& tbricks_test::
+test_ns::order_book& test_ns::
 feed_handler::get_order_book_ref(const order_id_t& id) {
     auto itr = order_id_symbols.find(id);
     if (itr != order_id_symbols.end()) {
@@ -702,7 +702,7 @@ feed_handler::get_order_book_ref(const order_id_t& id) {
 /*
  *
  */
-const tbricks_test::order_book& tbricks_test::
+const test_ns::order_book& test_ns::
 feed_handler::get_order_book_ref(const order_id_t& id) const {
     auto itr = order_id_symbols.find(id);
     if (itr != order_id_symbols.end()) {
@@ -717,7 +717,7 @@ feed_handler::get_order_book_ref(const order_id_t& id) const {
 /*
  *
  */
-tbricks_test::order_book& tbricks_test::
+test_ns::order_book& test_ns::
 feed_handler::get_order_book_ref(const std::string& symbol) {
     auto itr = order_books.find(symbol);
     if (itr == order_books.end()) {
@@ -730,7 +730,7 @@ feed_handler::get_order_book_ref(const std::string& symbol) {
 /*
  *
  */
-const tbricks_test::order_book& tbricks_test::
+const test_ns::order_book& test_ns::
 feed_handler::get_order_book_ref(const std::string& symbol) const {
     auto itr = order_books.find(symbol);
     if (itr == order_books.end()) {
@@ -743,7 +743,7 @@ feed_handler::get_order_book_ref(const std::string& symbol) const {
 /*
  *
  */
-tbricks_test::symbol_t tbricks_test::
+test_ns::symbol_t test_ns::
 feed_handler::get_selected_symbol() const {
     return selected_symbol;
 }
@@ -751,11 +751,11 @@ feed_handler::get_selected_symbol() const {
 /*
  *
  */
-tbricks_test::optional_order
-tbricks_test::feed_handler::get_order(const symbol_t& symbol,
+test_ns::optional_order
+test_ns::feed_handler::get_order(const symbol_t& symbol,
         order_id_t id) const {
     if (!should_keep_symbol(symbol)) {
-        return tbricks_test::optional_order{false, order_t()};
+        return test_ns::optional_order{false, order_t()};
     }
     auto & an_order_book = get_order_book_ref(symbol);
     return an_order_book.get_order(id);
@@ -764,7 +764,7 @@ tbricks_test::feed_handler::get_order(const symbol_t& symbol,
 /*
  *
  */
-bool tbricks_test::
+bool test_ns::
 feed_handler::is_there_symbol_for_order(order_id_t id) const {
     return order_id_symbols.find(id) != order_id_symbols.end();
 }
@@ -772,7 +772,7 @@ feed_handler::is_there_symbol_for_order(order_id_t id) const {
 /*
  *
  */
-tbricks_test::symbol_t tbricks_test::
+test_ns::symbol_t test_ns::
 feed_handler::get_symbol_for_order(order_id_t id) const {
     auto itr = order_id_symbols.find(id);
     if (itr != order_id_symbols.end()) {
@@ -786,14 +786,14 @@ feed_handler::get_symbol_for_order(order_id_t id) const {
 /*
  *
  */
-void tbricks_test::print_to_stdout(const std::string& s) {
+void test_ns::print_to_stdout(const std::string& s) {
     std::cout << s << '\n';
 }
 
 /*
  *
  */
-void tbricks_test::print_to_stderr(
+void test_ns::print_to_stderr(
         const std::string& line, const std::string& err) {
     std::cerr << "error: " << err << "line: " << line << '\n';
 }
@@ -801,21 +801,21 @@ void tbricks_test::print_to_stderr(
 /*
  *
  */
-tbricks_test::order_book::order_book(const symbol_t& symbol)
+test_ns::order_book::order_book(const symbol_t& symbol)
     : symbol(symbol) {
 }
 
 /*
  *
  */
-const tbricks_test::symbol_t& tbricks_test::order_book::get_symbol() const {
+const test_ns::symbol_t& test_ns::order_book::get_symbol() const {
     return symbol;
 }
 
 /*
  *
  */
-void tbricks_test::order_book::add_order(order_id_t id, side_t side,
+void test_ns::order_book::add_order(order_id_t id, side_t side,
         quantity_t quantity, double price) {
     auto itr = orders.find(id);
     if (itr == orders.end()) {
@@ -835,7 +835,7 @@ void tbricks_test::order_book::add_order(order_id_t id, side_t side,
 /*
  *
  */
-void tbricks_test::order_book::modify_order(order_id_t id, quantity_t quantity,
+void test_ns::order_book::modify_order(order_id_t id, quantity_t quantity,
         double price) {
     auto itr = orders.find(id);
     if (itr == orders.end()) {
@@ -862,7 +862,7 @@ void tbricks_test::order_book::modify_order(order_id_t id, quantity_t quantity,
 /*
  *
  */
-void tbricks_test::order_book::cancel_order(order_id_t id) {
+void test_ns::order_book::cancel_order(order_id_t id) {
     auto itr = orders.find(id);
     if (itr == orders.end()) {
         std::ostringstream s;
@@ -882,7 +882,7 @@ void tbricks_test::order_book::cancel_order(order_id_t id) {
 /*
  *
  */
-void tbricks_test::order_book::add_bid(double price, order_id_t id) {
+void test_ns::order_book::add_bid(double price, order_id_t id) {
     auto itr = bids.find(price);
     if (itr == bids.end()) {
         auto res = bids.insert(std::make_pair(price, order_ids_t()));
@@ -895,7 +895,7 @@ void tbricks_test::order_book::add_bid(double price, order_id_t id) {
 /*
  *
  */
-void tbricks_test::order_book::remove_bid(double price, order_id_t id) {
+void test_ns::order_book::remove_bid(double price, order_id_t id) {
     auto itr = bids.find(price);
     assert(itr != bids.end());
     if (itr != bids.end()) {
@@ -910,7 +910,7 @@ void tbricks_test::order_book::remove_bid(double price, order_id_t id) {
 /*
  *
  */
-void tbricks_test::order_book::add_sale(double price, order_id_t id) {
+void test_ns::order_book::add_sale(double price, order_id_t id) {
     auto itr = sales.find(price);
     if (itr == sales.end()) {
         auto res = sales.insert(std::make_pair(price, order_ids_t()));
@@ -923,7 +923,7 @@ void tbricks_test::order_book::add_sale(double price, order_id_t id) {
 /*
  *
  */
-void tbricks_test::order_book::remove_sale(double price, order_id_t id) {
+void test_ns::order_book::remove_sale(double price, order_id_t id) {
     auto itr = sales.find(price);
     assert(itr != sales.end());
     if (itr != sales.end()) {
@@ -938,7 +938,7 @@ void tbricks_test::order_book::remove_sale(double price, order_id_t id) {
 /*
  *
  */
-tbricks_test::optional_order tbricks_test::order_book::get_order(
+test_ns::optional_order test_ns::order_book::get_order(
         order_id_t id) const {
     auto itr = orders.find(id);
     if (itr == orders.end()) {
@@ -951,7 +951,7 @@ tbricks_test::optional_order tbricks_test::order_book::get_order(
 /*
  *
  */
-void tbricks_test::order_book::get_price_levels(
+void test_ns::order_book::get_price_levels(
         get_price_levels_callback_t&& callback) const {
     auto bids_itr = bids.begin();
     auto sales_itr = sales.begin();
@@ -988,8 +988,8 @@ void tbricks_test::order_book::get_price_levels(
 /*
  *
  */
-tbricks_test::volume_price_t
-tbricks_test::
+test_ns::volume_price_t
+test_ns::
 order_book::get_volume_price(double price, const order_ids_t& order_ids) const {
     quantity_t total = 0;
     for (auto const & id : order_ids) {
@@ -999,21 +999,21 @@ order_book::get_volume_price(double price, const order_ids_t& order_ids) const {
             total += itr->second.quantity;
         }
     }
-    return tbricks_test::volume_price_t{total, price};
+    return test_ns::volume_price_t{total, price};
 }
 
 
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 order_book::get_orders(get_orders_callback_t&&) const {
 }
 
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 order_book::get_bbo(bbo_t* bbo) const {
     if (bids.begin() == bids.end()) {
         bbo->buy = std::make_pair(false, volume_price_t());
@@ -1035,7 +1035,7 @@ order_book::get_bbo(bbo_t* bbo) const {
 /*
  *
  */
-void tbricks_test::
+void test_ns::
 order_book::get_vwap(quantity_t quantity, vwap_t* vwap) const {
     vwap->quantity = quantity;
     if (bids.begin() == bids.end()) {

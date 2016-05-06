@@ -9,7 +9,7 @@
 #include <functional>
 #include <utility>
 
-namespace tbricks_test {
+namespace test_ns {
 
 /*
  *
@@ -203,6 +203,6 @@ void print_to_stdout(const std::string& s);
 void print_to_stderr(const std::string& line, const std::string& err);
 
 
-}  // namespace tbricks_test
+}  // namespace test_ns
 
 #endif  // FEED_HANDLER_H

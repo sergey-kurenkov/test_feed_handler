@@ -7,8 +7,8 @@
 #include "feed_handler.h"
 
 
-tbricks_test::symbol_t test_symbol_1 = "S1";
-tbricks_test::symbol_t test_symbol_2 = "S2";
+test_ns::symbol_t test_symbol_1 = "S1";
+test_ns::symbol_t test_symbol_2 = "S2";
 
 /*
  *
@@ -25,11 +25,11 @@ struct test_callback_t {
 };
 
 struct get_price_levels_t {
-    using price_levels_t = std::vector<tbricks_test::price_level_t>;
+    using price_levels_t = std::vector<test_ns::price_level_t>;
     price_levels_t bids;
     price_levels_t sales;
-    void func(const tbricks_test::price_level_t& bid,
-            const tbricks_test::price_level_t& sale) {
+    void func(const test_ns::price_level_t& bid,
+            const test_ns::price_level_t& sale) {
         bids.push_back(bid);
         sales.push_back(sale);
     }
@@ -40,24 +40,24 @@ struct get_price_levels_t {
  */
 #define CREATE_DEFAULT_TEST_HANDLER \
         test_callback_t a_test_object; \
-        tbricks_test::callback_t \
+        test_ns::callback_t \
             a_callback = std::bind(&test_callback_t::ok_func, \
                     &a_test_object, std::placeholders::_1); \
-        tbricks_test::err_callback_t an_err_callback = std::bind( \
+        test_ns::err_callback_t an_err_callback = std::bind( \
                     &test_callback_t::err_func, &a_test_object, \
                     std::placeholders::_1, std::placeholders::_2); \
-        tbricks_test::feed_handler a_handler("", \
+        test_ns::feed_handler a_handler("", \
                 std::move(a_callback), std::move(an_err_callback));
 
 #define CREATE_SYMBOL_TEST_HANDLER(symbol) \
         test_callback_t a_test_object; \
-        tbricks_test::callback_t \
+        test_ns::callback_t \
             a_callback = std::bind(&test_callback_t::ok_func, \
                     &a_test_object, std::placeholders::_1); \
-        tbricks_test::err_callback_t an_err_callback = std::bind( \
+        test_ns::err_callback_t an_err_callback = std::bind( \
                     &test_callback_t::err_func, &a_test_object, \
                     std::placeholders::_1, std::placeholders::_2); \
-        tbricks_test::feed_handler a_handler(symbol, \
+        test_ns::feed_handler a_handler(symbol, \
                 std::move(a_callback), std::move(an_err_callback));
 
 
@@ -72,9 +72,9 @@ struct get_price_levels_t {
  */
 TEST(FeedHandler, CreateWithEmptyCallback) {
     try {
-        tbricks_test::callback_t a_callback;
-        tbricks_test::err_callback_t an_err_callback;
-        tbricks_test::feed_handler a_handler("",
+        test_ns::callback_t a_callback;
+        test_ns::err_callback_t an_err_callback;
+        test_ns::feed_handler a_handler("",
                 std::move(a_callback), std::move(an_err_callback));
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -83,11 +83,11 @@ TEST(FeedHandler, CreateWithEmptyCallback) {
 
 TEST(FeedHandler, CreateWithDefCallback) {
     try {
-        tbricks_test::callback_t
-            a_callback{tbricks_test::print_to_stdout};
-        tbricks_test::err_callback_t
-            an_err_callback{tbricks_test::print_to_stderr};
-        tbricks_test::feed_handler a_handler("",
+        test_ns::callback_t
+            a_callback{test_ns::print_to_stdout};
+        test_ns::err_callback_t
+            an_err_callback{test_ns::print_to_stderr};
+        test_ns::feed_handler a_handler("",
                 std::move(a_callback), std::move(an_err_callback));
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -97,13 +97,13 @@ TEST(FeedHandler, CreateWithDefCallback) {
 TEST(FeedHandler, CreateWithTestCallback) {
     try {
         test_callback_t a_test_object;
-        tbricks_test::callback_t
+        test_ns::callback_t
             a_callback = std::bind(&test_callback_t::ok_func,
                     &a_test_object, std::placeholders::_1);
-        tbricks_test::err_callback_t an_err_callback = std::bind(
+        test_ns::err_callback_t an_err_callback = std::bind(
                     &test_callback_t::err_func, &a_test_object,
                     std::placeholders::_1, std::placeholders::_2);
-        tbricks_test::feed_handler a_handler("",
+        test_ns::feed_handler a_handler("",
                 std::move(a_callback), std::move(an_err_callback));
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -152,7 +152,7 @@ TEST(FeedHandler, OrderAddBuy) {
         ASSERT_TRUE(a_test_object.output.empty());
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
     } catch (std::exception& e) {
@@ -167,7 +167,7 @@ TEST(FeedHandler, OrderAddSell) {
         ASSERT_TRUE(a_test_object.output.empty());
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 4.33);
     } catch (std::exception& e) {
@@ -182,7 +182,7 @@ TEST(FeedHandler, SelectedSymbolOrderAddBuy) {
         ASSERT_TRUE(a_test_object.output.empty());
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
     } catch (std::exception& e) {
@@ -197,7 +197,7 @@ TEST(FeedHandler, OrderAddBuyDuplicate) {
         ASSERT_TRUE(a_test_object.output.empty());
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
@@ -206,7 +206,7 @@ TEST(FeedHandler, OrderAddBuyDuplicate) {
         ASSERT_EQ(a_test_object.errors.size(), 1);
         auto order_2 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_2.first);
-        ASSERT_EQ(order_2.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_2.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_2.second.quantity, 20);
         ASSERT_EQ(order_2.second.price, 3.33);
     } catch (std::exception& e) {
@@ -224,13 +224,13 @@ TEST(FeedHandler, OrderAddBuyTwoSymbols) {
 
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
         auto order_2 = a_handler.get_order(test_symbol_2, 1);
         ASSERT_TRUE(order_2.first);
-        ASSERT_EQ(order_2.second.side, tbricks_test::side_t::sell);
+        ASSERT_EQ(order_2.second.side, test_ns::side_t::sell);
         ASSERT_EQ(order_2.second.quantity, 30);
         ASSERT_EQ(order_2.second.price, 4.33);
     } catch (std::exception& e) {
@@ -247,7 +247,7 @@ TEST(FeedHandler, OrderModifyBuy) {
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         ASSERT_TRUE(order_1.first);
         ASSERT_TRUE(a_test_object.errors.empty());
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
@@ -257,7 +257,7 @@ TEST(FeedHandler, OrderModifyBuy) {
         order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 4.01);
     } catch (std::exception& e) {
@@ -275,7 +275,7 @@ TEST(FeedHandler, OrderCancelBuy) {
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         ASSERT_TRUE(order_1.first);
         ASSERT_TRUE(a_test_object.errors.empty());
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
@@ -285,7 +285,7 @@ TEST(FeedHandler, OrderCancelBuy) {
         order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 4.01);
 
@@ -669,7 +669,7 @@ TEST(FeedHandler, SelectedSymbolOrderAddBuy2) {
  */
 TEST(OrderBook, Create) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
         ASSERT_STREQ(an_order_book.get_symbol().c_str(), test_symbol_1.c_str());
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -678,14 +678,14 @@ TEST(OrderBook, Create) {
 
 TEST(OrderBook, AddOrder1) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
         {
             auto order_1 = an_order_book.get_order(1);
             ASSERT_FALSE(order_1.first);
-            an_order_book.add_order(1, tbricks_test::side_t::buy, 20, 3.33);
+            an_order_book.add_order(1, test_ns::side_t::buy, 20, 3.33);
             order_1 = an_order_book.get_order(1);
             ASSERT_TRUE(order_1.first);
-            ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+            ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
             ASSERT_EQ(order_1.second.quantity, 20);
             ASSERT_EQ(order_1.second.price, 3.33);
         }
@@ -693,16 +693,16 @@ TEST(OrderBook, AddOrder1) {
         {
             auto order_2 = an_order_book.get_order(2);
             ASSERT_FALSE(order_2.first);
-            an_order_book.add_order(2, tbricks_test::side_t::sell, 30, 4.33);
+            an_order_book.add_order(2, test_ns::side_t::sell, 30, 4.33);
             order_2 = an_order_book.get_order(2);
             ASSERT_TRUE(order_2.first);
-            ASSERT_EQ(order_2.second.side, tbricks_test::side_t::sell);
+            ASSERT_EQ(order_2.second.side, test_ns::side_t::sell);
             ASSERT_EQ(order_2.second.quantity, 30);
             ASSERT_EQ(order_2.second.price, 4.33);
 
             auto order_1 = an_order_book.get_order(1);
             ASSERT_TRUE(order_1.first);
-            ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+            ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
             ASSERT_EQ(order_1.second.quantity, 20);
             ASSERT_EQ(order_1.second.price, 3.33);
         }
@@ -713,17 +713,17 @@ TEST(OrderBook, AddOrder1) {
 
 TEST(OrderBook, AddDuplicatiteOrder) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
         auto order_1 = an_order_book.get_order(1);
         ASSERT_FALSE(order_1.first);
-        an_order_book.add_order(1, tbricks_test::side_t::buy, 20, 3.33);
+        an_order_book.add_order(1, test_ns::side_t::buy, 20, 3.33);
         order_1 = an_order_book.get_order(1);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
-        an_order_book.add_order(1, tbricks_test::side_t::sell, 30, 4.33);
+        an_order_book.add_order(1, test_ns::side_t::sell, 30, 4.33);
         FAIL() << "duplicate orders must result in exception";
     } catch (std::exception& e) {
         SUCCEED();
@@ -732,10 +732,10 @@ TEST(OrderBook, AddDuplicatiteOrder) {
 
 TEST(OrderBook, GetPriceLevel) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
         get_price_levels_t get_price_levels;
-        tbricks_test::get_price_levels_callback_t callback1 =
+        test_ns::get_price_levels_callback_t callback1 =
                 std::bind(&get_price_levels_t::func, &get_price_levels,
                         std::placeholders::_1, std::placeholders::_2);
         an_order_book.get_price_levels(std::move(callback1));
@@ -743,8 +743,8 @@ TEST(OrderBook, GetPriceLevel) {
         ASSERT_EQ(get_price_levels.bids.size(), 0);
         ASSERT_EQ(get_price_levels.sales.size(), 0);
 
-        an_order_book.add_order(1, tbricks_test::side_t::buy, 20, 3.33);
-        tbricks_test::get_price_levels_callback_t callback2 =
+        an_order_book.add_order(1, test_ns::side_t::buy, 20, 3.33);
+        test_ns::get_price_levels_callback_t callback2 =
                 std::bind(&get_price_levels_t::func, &get_price_levels,
                         std::placeholders::_1, std::placeholders::_2);
         an_order_book.get_price_levels(std::move(callback2));
@@ -762,15 +762,15 @@ TEST(OrderBook, GetPriceLevel) {
 
 TEST(OrderBook, GetPriceLevelSale) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(1, tbricks_test::side_t::sell, 20, 10.);
-        an_order_book.add_order(2, tbricks_test::side_t::sell, 40, 12.);
-        an_order_book.add_order(3, tbricks_test::side_t::sell, 5, 10.);
-        an_order_book.add_order(4, tbricks_test::side_t::sell, 10, 12.);
+        an_order_book.add_order(1, test_ns::side_t::sell, 20, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 40, 12.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 5, 10.);
+        an_order_book.add_order(4, test_ns::side_t::sell, 10, 12.);
 
         get_price_levels_t get_price_levels;
-        tbricks_test::get_price_levels_callback_t callback2 =
+        test_ns::get_price_levels_callback_t callback2 =
                 std::bind(&get_price_levels_t::func, &get_price_levels,
                         std::placeholders::_1, std::placeholders::_2);
         an_order_book.get_price_levels(std::move(callback2));
@@ -793,19 +793,19 @@ TEST(OrderBook, GetPriceLevelSale) {
 
 TEST(OrderBook, GetPriceLevelBye) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(1, tbricks_test::side_t::sell, 20, 10.);
-        an_order_book.add_order(2, tbricks_test::side_t::sell, 40, 12.);
-        an_order_book.add_order(3, tbricks_test::side_t::sell, 5, 10.);
-        an_order_book.add_order(4, tbricks_test::side_t::sell, 10, 12.);
-        an_order_book.add_order(5, tbricks_test::side_t::buy, 20, 10.);
-        an_order_book.add_order(6, tbricks_test::side_t::buy, 40, 12.);
-        an_order_book.add_order(7, tbricks_test::side_t::buy, 5, 10.);
-        an_order_book.add_order(8, tbricks_test::side_t::buy, 10, 12.);
+        an_order_book.add_order(1, test_ns::side_t::sell, 20, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 40, 12.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 5, 10.);
+        an_order_book.add_order(4, test_ns::side_t::sell, 10, 12.);
+        an_order_book.add_order(5, test_ns::side_t::buy, 20, 10.);
+        an_order_book.add_order(6, test_ns::side_t::buy, 40, 12.);
+        an_order_book.add_order(7, test_ns::side_t::buy, 5, 10.);
+        an_order_book.add_order(8, test_ns::side_t::buy, 10, 12.);
 
         get_price_levels_t get_price_levels;
-        tbricks_test::get_price_levels_callback_t callback2 =
+        test_ns::get_price_levels_callback_t callback2 =
                 std::bind(&get_price_levels_t::func, &get_price_levels,
                         std::placeholders::_1, std::placeholders::_2);
         an_order_book.get_price_levels(std::move(callback2));
@@ -832,15 +832,15 @@ TEST(OrderBook, GetPriceLevelBye) {
 
 TEST(OrderBook, GetPriceLevelAll) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(1, tbricks_test::side_t::buy, 20, 10.);
-        an_order_book.add_order(2, tbricks_test::side_t::buy, 40, 12.);
-        an_order_book.add_order(3, tbricks_test::side_t::buy, 5, 10.);
-        an_order_book.add_order(4, tbricks_test::side_t::buy, 10, 12.);
+        an_order_book.add_order(1, test_ns::side_t::buy, 20, 10.);
+        an_order_book.add_order(2, test_ns::side_t::buy, 40, 12.);
+        an_order_book.add_order(3, test_ns::side_t::buy, 5, 10.);
+        an_order_book.add_order(4, test_ns::side_t::buy, 10, 12.);
 
         get_price_levels_t get_price_levels;
-        tbricks_test::get_price_levels_callback_t callback2 =
+        test_ns::get_price_levels_callback_t callback2 =
                 std::bind(&get_price_levels_t::func, &get_price_levels,
                         std::placeholders::_1, std::placeholders::_2);
         an_order_book.get_price_levels(std::move(callback2));
@@ -863,18 +863,18 @@ TEST(OrderBook, GetPriceLevelAll) {
 
 TEST(OrderBook, BBO) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(1, tbricks_test::side_t::sell, 20, 10.);
-        an_order_book.add_order(2, tbricks_test::side_t::sell, 40, 12.);
-        an_order_book.add_order(3, tbricks_test::side_t::sell, 5, 10.);
-        an_order_book.add_order(4, tbricks_test::side_t::sell, 10, 12.);
-        an_order_book.add_order(5, tbricks_test::side_t::buy, 20, 10.);
-        an_order_book.add_order(6, tbricks_test::side_t::buy, 40, 12.);
-        an_order_book.add_order(7, tbricks_test::side_t::buy, 5, 10.);
-        an_order_book.add_order(8, tbricks_test::side_t::buy, 10, 12.);
+        an_order_book.add_order(1, test_ns::side_t::sell, 20, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 40, 12.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 5, 10.);
+        an_order_book.add_order(4, test_ns::side_t::sell, 10, 12.);
+        an_order_book.add_order(5, test_ns::side_t::buy, 20, 10.);
+        an_order_book.add_order(6, test_ns::side_t::buy, 40, 12.);
+        an_order_book.add_order(7, test_ns::side_t::buy, 5, 10.);
+        an_order_book.add_order(8, test_ns::side_t::buy, 10, 12.);
 
-        tbricks_test::bbo_t bbo;
+        test_ns::bbo_t bbo;
         an_order_book.get_bbo(&bbo);
 
         ASSERT_EQ(bbo.buy.first, true);
@@ -891,14 +891,14 @@ TEST(OrderBook, BBO) {
 
 TEST(OrderBook, BBOBuyOnly) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(5, tbricks_test::side_t::buy, 20, 10.);
-        an_order_book.add_order(6, tbricks_test::side_t::buy, 40, 12.);
-        an_order_book.add_order(7, tbricks_test::side_t::buy, 5, 10.);
-        an_order_book.add_order(8, tbricks_test::side_t::buy, 10, 12.);
+        an_order_book.add_order(5, test_ns::side_t::buy, 20, 10.);
+        an_order_book.add_order(6, test_ns::side_t::buy, 40, 12.);
+        an_order_book.add_order(7, test_ns::side_t::buy, 5, 10.);
+        an_order_book.add_order(8, test_ns::side_t::buy, 10, 12.);
 
-        tbricks_test::bbo_t bbo;
+        test_ns::bbo_t bbo;
         an_order_book.get_bbo(&bbo);
 
         ASSERT_EQ(bbo.buy.first, true);
@@ -913,14 +913,14 @@ TEST(OrderBook, BBOBuyOnly) {
 
 TEST(OrderBook, BBOSellOnly) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        an_order_book.add_order(1, tbricks_test::side_t::sell, 20, 10.);
-        an_order_book.add_order(2, tbricks_test::side_t::sell, 40, 12.);
-        an_order_book.add_order(3, tbricks_test::side_t::sell, 5, 10.);
-        an_order_book.add_order(4, tbricks_test::side_t::sell, 10, 12.);
+        an_order_book.add_order(1, test_ns::side_t::sell, 20, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 40, 12.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 5, 10.);
+        an_order_book.add_order(4, test_ns::side_t::sell, 10, 12.);
 
-        tbricks_test::bbo_t bbo;
+        test_ns::bbo_t bbo;
         an_order_book.get_bbo(&bbo);
 
         ASSERT_EQ(bbo.buy.first, false);
@@ -935,28 +935,28 @@ TEST(OrderBook, BBOSellOnly) {
 
 TEST(OrderBook, ModifyOrder1) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
         auto order_1 = an_order_book.get_order(1);
         ASSERT_FALSE(order_1.first);
-        an_order_book.add_order(111, tbricks_test::side_t::buy, 20, 10.0);
+        an_order_book.add_order(111, test_ns::side_t::buy, 20, 10.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 10.);
 
         an_order_book.modify_order(111, 30, 40.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 40.);
 
         an_order_book.modify_order(111, 50, 70.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 50);
         ASSERT_EQ(order_1.second.price, 70.);
     } catch (std::exception& e) {
@@ -966,28 +966,28 @@ TEST(OrderBook, ModifyOrder1) {
 
 TEST(OrderBook, ModifyOrder2) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
         auto order_1 = an_order_book.get_order(1);
         ASSERT_FALSE(order_1.first);
-        an_order_book.add_order(111, tbricks_test::side_t::sell, 20, 10.0);
+        an_order_book.add_order(111, test_ns::side_t::sell, 20, 10.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 10.);
 
         an_order_book.modify_order(111, 30, 40.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 40.);
 
         an_order_book.modify_order(111, 50, 70.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 50);
         ASSERT_EQ(order_1.second.price, 70.);
     } catch (std::exception& e) {
@@ -997,14 +997,14 @@ TEST(OrderBook, ModifyOrder2) {
 
 TEST(OrderBook, CancelOrderBuy) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
         auto order_1 = an_order_book.get_order(1);
         ASSERT_FALSE(order_1.first);
-        an_order_book.add_order(111, tbricks_test::side_t::buy, 20, 10.0);
+        an_order_book.add_order(111, test_ns::side_t::buy, 20, 10.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 10.);
 
@@ -1018,14 +1018,14 @@ TEST(OrderBook, CancelOrderBuy) {
 
 TEST(OrderBook, CancelOrderSell) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
         auto order_1 = an_order_book.get_order(1);
         ASSERT_FALSE(order_1.first);
-        an_order_book.add_order(111, tbricks_test::side_t::buy, 20, 10.0);
+        an_order_book.add_order(111, test_ns::side_t::buy, 20, 10.0);
         order_1 = an_order_book.get_order(111);
         ASSERT_TRUE(order_1.first);
-        ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
+        ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 10.);
 
@@ -1039,15 +1039,15 @@ TEST(OrderBook, CancelOrderSell) {
 
 TEST(OrderBook, VWAPBuyOnly) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        tbricks_test::vwap_t vwap;
+        test_ns::vwap_t vwap;
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, false);
         ASSERT_EQ(vwap.sell.valid, false);
 
-        an_order_book.add_order(5, tbricks_test::side_t::buy, 10, 72.82);
-        an_order_book.add_order(6, tbricks_test::side_t::buy, 100, 72.81);
+        an_order_book.add_order(5, test_ns::side_t::buy, 10, 72.82);
+        an_order_book.add_order(6, test_ns::side_t::buy, 100, 72.81);
 
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, true);
@@ -1065,15 +1065,15 @@ TEST(OrderBook, VWAPBuyOnly) {
 
 TEST(OrderBook, VWAPSellOnly) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        tbricks_test::vwap_t vwap;
+        test_ns::vwap_t vwap;
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, false);
         ASSERT_EQ(vwap.sell.valid, false);
 
-        an_order_book.add_order(6, tbricks_test::side_t::sell, 10, 100.);
-        an_order_book.add_order(5, tbricks_test::side_t::sell, 20, 200.);
+        an_order_book.add_order(6, test_ns::side_t::sell, 10, 100.);
+        an_order_book.add_order(5, test_ns::side_t::sell, 20, 200.);
 
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, false);
@@ -1091,17 +1091,17 @@ TEST(OrderBook, VWAPSellOnly) {
 
 TEST(OrderBook, VWAPBuyAndSell) {
     try {
-        tbricks_test::order_book an_order_book{test_symbol_1};
+        test_ns::order_book an_order_book{test_symbol_1};
 
-        tbricks_test::vwap_t vwap;
+        test_ns::vwap_t vwap;
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, false);
         ASSERT_EQ(vwap.sell.valid, false);
 
-        an_order_book.add_order(1, tbricks_test::side_t::buy, 10, 72.82);
-        an_order_book.add_order(2, tbricks_test::side_t::buy, 100, 72.81);
-        an_order_book.add_order(3, tbricks_test::side_t::sell, 10, 100.);
-        an_order_book.add_order(4, tbricks_test::side_t::sell, 20, 200.);
+        an_order_book.add_order(1, test_ns::side_t::buy, 10, 72.82);
+        an_order_book.add_order(2, test_ns::side_t::buy, 100, 72.81);
+        an_order_book.add_order(3, test_ns::side_t::sell, 10, 100.);
+        an_order_book.add_order(4, test_ns::side_t::sell, 20, 200.);
 
         an_order_book.get_vwap(5, &vwap);
         ASSERT_EQ(vwap.buy.valid, true);

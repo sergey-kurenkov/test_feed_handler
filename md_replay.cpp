@@ -23,10 +23,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    tbricks_test::callback_t a_callback = tbricks_test::print_to_stdout;
-    tbricks_test::err_callback_t an_err_callback =
-            tbricks_test::print_to_stderr;
-    tbricks_test::feed_handler a_feed_handler{symbol,
+    test_ns::callback_t a_callback = test_ns::print_to_stdout;
+    test_ns::err_callback_t an_err_callback =
+            test_ns::print_to_stderr;
+    test_ns::feed_handler a_feed_handler{symbol,
         std::move(a_callback), std::move(an_err_callback)};
 
     std::string line;
