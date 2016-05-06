@@ -15,6 +15,8 @@
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
 
+.PHONY: all test
+
 PLATFORM=UNKNOWN_OS
 ifeq ($(shell uname), Linux)
   PLATFORM=linux
@@ -109,9 +111,8 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-ifeq "$(PLATFORM)" "linux"
-    RPATH = -Wl,-rpath,$(shell dirname $(shell which gcc))/../lib64
-endif
+RPATH = -Wl,-rpath,$(shell dirname $(shell which $(CXX)))/../lib64
+
 
 feed_handler.o : $(USER_DIR)/feed_handler.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler.cpp
@@ -128,3 +129,6 @@ md_replay_unittest : feed_handler.o feed_handler_unittest.o gtest_main.a
 
 md_replay : md_replay.o feed_handler.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@ $(RPATH)
+
+test: all
+	./md_replay_unittest

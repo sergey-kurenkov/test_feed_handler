@@ -577,7 +577,7 @@ bool tbricks_test::
 feed_handler::str_to_order_id(const std::string& token, order_id_t* id) {
     std::istringstream ss(token);
     ss >> *id;
-    return ss;
+    return static_cast<bool>(ss);
 }
 
 /*
@@ -614,7 +614,7 @@ bool tbricks_test::
 feed_handler::str_to_quantity(const std::string& token, quantity_t* quantity) {
     std::istringstream ss(token);
     ss >> *quantity;
-    return ss;
+    return static_cast<bool>(ss);
 }
 
 /*
@@ -624,7 +624,7 @@ bool tbricks_test::
 feed_handler::str_to_price(const std::string& token, double* price) {
     std::istringstream ss(token);
     ss >> *price;
-    return ss;
+    return static_cast<bool>(ss);
 }
 
 /*
