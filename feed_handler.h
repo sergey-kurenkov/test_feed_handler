@@ -72,9 +72,6 @@ using price_level_t = std::pair<bool, volume_price_t>;
 using get_price_levels_callback_t =
         std::function<void(const price_level_t&, const price_level_t&)>;
 
-using get_orders_callback_t =
-        std::function<void()>;
-
 /*
  *
  */
@@ -100,6 +97,19 @@ struct vwap_t {
 /*
  *
  */
+struct full_orders_t {
+    bool valid;
+    unsigned orders;
+    quantity_t volume;
+    double price;
+};
+
+using get_full_orders_callback_t =
+        std::function<void(const full_orders_t& bid, const full_orders_t& ask)>;
+
+/*
+ *
+ */
 class order_book {
  public:
     explicit order_book(const symbol_t& symbol);
@@ -109,7 +119,7 @@ class order_book {
     void modify_order(order_id_t id, quantity_t, double);
     void cancel_order(order_id_t id);
     void get_price_levels(get_price_levels_callback_t&&) const;
-    void get_orders(get_orders_callback_t&&) const;
+    void get_full_orders(get_full_orders_callback_t&&) const;
     void get_bbo(bbo_t*) const;
     void get_vwap(quantity_t, vwap_t*) const;
  private:
@@ -126,6 +136,7 @@ class order_book {
     void remove_bid(double, order_id_t);
     void remove_sale(double, order_id_t);
     volume_price_t get_volume_price(double price, const order_ids_t&) const;
+    full_orders_t get_line_full_orders(double price, const order_ids_t&) const;
 };
 
 using callback_t =

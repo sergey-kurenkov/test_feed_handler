@@ -87,7 +87,7 @@ feed_handler::process_command(const std::string& line) {
         print(line);
         break;
     case command_t::print_full:
-        //  print_full(line);
+        print_full(line);
         break;
     default:
         err_callback(line, "not implemented");
@@ -526,7 +526,17 @@ feed_handler::print(const symbol_t& line) const {
  *
  */
 void test_ns::
-feed_handler::print_full(const symbol_t& symbol) const {
+feed_handler::print_full(const symbol_t& line) const {
+    args_t args;
+    if (!parse_args(line, 1, &args)) {
+        err_callback(line, "invalid number of parameters");
+        return;
+    }
+    symbol_t symbol;
+    if (!str_to_symbol(args[0], &symbol)) {
+        err_callback(line, "invalid symbol");
+        return;
+    }
     if (!should_keep_symbol(symbol)) {
         return;
     }
@@ -534,9 +544,82 @@ feed_handler::print_full(const symbol_t& symbol) const {
         return;
     }
     auto const & order_book = get_order_book_ref(symbol);
-    auto print_orders = [&] () {
+    std::ostringstream ss;
+    auto format_column = [&ss]() {
+        ss << std::left << std::setw(10);
     };
-    order_book.get_orders(std::move(print_orders));
+    auto format_string = [&ss, &format_column] (const std::string& s) {
+        format_column();
+        ss << s;
+    };
+
+    auto format_number = [&ss, &format_column] (unsigned value) {
+        format_column();
+        ss << value;
+    };
+
+    auto format_quantity = [&ss, &format_column] (quantity_t value) {
+        format_column();
+        ss << std::left << std::setw(10) << value;
+    };
+
+    auto format_double = [&ss, &format_column] (double value) {
+        format_column();
+        ss << value;
+    };
+
+    auto format_spaces = [&ss, &format_column] (unsigned times) {
+        for (auto i = 0U; i < times; ++i) {
+            format_column();
+            ss << ' ';
+        }
+    };
+
+    auto separate_line = [&ss] () {
+        ss << std::setfill('-') << std::setw(60) << '-';
+        ss << std::setfill(' ');
+    };
+
+    auto print_string = [&] () {
+        callback(ss.str());
+        ss.str("");
+    };
+
+    separate_line();
+    print_string();
+
+    format_string("orders");
+    format_string("volume");
+    format_string("bid");
+    format_string("ask");
+    format_string("volume");
+    format_string("orders");
+    print_string();
+
+    separate_line();
+    print_string();
+
+    auto print_orders = [&]
+        (const full_orders_t& bid, const full_orders_t& ask) {
+        if (bid.valid) {
+            format_number(bid.orders);
+            format_quantity(bid.volume);
+            format_double(bid.price);
+        } else {
+            format_spaces(3);
+        }
+        if (ask.valid) {
+            format_number(ask.orders);
+            format_quantity(ask.volume);
+            format_double(ask.price);
+        } else {
+            format_spaces(3);
+        }
+        print_string();
+    };
+    order_book.get_full_orders(std::move(print_orders));
+    separate_line();
+    print_string();
 }
 
 /*
@@ -1005,12 +1088,51 @@ order_book::get_volume_price(double price, const order_ids_t& order_ids) const {
     return test_ns::volume_price_t{total, price};
 }
 
+test_ns::full_orders_t
+test_ns::
+order_book::get_line_full_orders(double price,
+        const order_ids_t& order_ids) const {
+    quantity_t total = 0;
+    for (auto const & id : order_ids) {
+        auto itr = orders.find(id);
+        assert(itr != orders.end());
+        if (itr != orders.end()) {
+            total += itr->second.quantity;
+        }
+    }
+    return test_ns::full_orders_t{true, order_ids.size(), total, price};
+}
 
 /*
  *
  */
 void test_ns::
-order_book::get_orders(get_orders_callback_t&&) const {
+order_book::get_full_orders(get_full_orders_callback_t&& callback) const {
+    auto bids_itr = bids.begin();
+    auto sales_itr = sales.begin();
+    while (bids_itr != bids.end() && sales_itr != sales.end()) {
+        full_orders_t bid = get_line_full_orders(bids_itr->first,
+                bids_itr->second);
+        full_orders_t ask = get_line_full_orders(sales_itr->first,
+                sales_itr->second);
+        callback(bid, ask);
+        ++bids_itr;
+        ++sales_itr;
+    }
+    while (bids_itr != bids.end()) {
+        full_orders_t bid = get_line_full_orders(bids_itr->first,
+                bids_itr->second);
+        full_orders_t ask {false, 0, 0, 0};
+        callback(bid, ask);
+        ++bids_itr;
+    }
+    while (sales_itr != sales.end()) {
+        full_orders_t bid = {false, 0, 0, 0};
+        full_orders_t ask = get_line_full_orders(sales_itr->first,
+                sales_itr->second);
+        callback(bid, ask);
+        ++sales_itr;
+    }
 }
 
 /*
