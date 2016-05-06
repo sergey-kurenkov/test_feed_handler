@@ -181,7 +181,6 @@ feed_handler::process_order_modify(const std::string& line) {
         err_callback(line, "invalid price");
         return;
     }
-
     if (!is_there_order_book(id)) {
         std::ostringstream ss;
         ss << "failed to modify order: " << id;
@@ -757,6 +756,10 @@ test_ns::feed_handler::get_order(const symbol_t& symbol,
     if (!should_keep_symbol(symbol)) {
         return test_ns::optional_order{false, order_t()};
     }
+    if (!is_there_order_book(id)) {
+        return test_ns::optional_order{false, order_t()};
+    }
+
     auto & an_order_book = get_order_book_ref(symbol);
     return an_order_book.get_order(id);
 }

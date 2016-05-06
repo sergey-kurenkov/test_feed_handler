@@ -326,6 +326,19 @@ TEST(FeedHandler, OrderModifyInvalidNumParams2) {
     }
 }
 
+TEST(FeedHandler, OrderModifyInvalidID) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER MODIFY,1,30,4.01");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        auto order = a_handler.get_order(test_symbol_1, 1);
+        ASSERT_FALSE(order.first);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, OrderModifyBuy) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
@@ -373,6 +386,19 @@ TEST(FeedHandler, OrderCancelInvalidNumParams2) {
     }
 }
 
+TEST(FeedHandler, OrderCancelInvalidID) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER CANCEL,1");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        auto order = a_handler.get_order(test_symbol_1, 1);
+        ASSERT_FALSE(order.first);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, OrderCancelBuy) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
@@ -398,11 +424,8 @@ TEST(FeedHandler, OrderCancelBuy) {
         ASSERT_EQ(order_1.second.price, 4.01);
 
         a_handler.process_command("ORDER CANCEL,1");
-        PRINT_CALLBACK_ERRORS;
         ASSERT_FALSE(a_handler.is_there_symbol_for_order(1));
-        order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
-        ASSERT_FALSE(order_1.first);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
