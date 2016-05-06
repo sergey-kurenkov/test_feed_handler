@@ -150,7 +150,7 @@ TEST(FeedHandler, OrderAddBuy) {
         CREATE_DEFAULT_TEST_HANDLER;
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
@@ -165,7 +165,7 @@ TEST(FeedHandler, OrderAddSell) {
         CREATE_DEFAULT_TEST_HANDLER;
         a_handler.process_command("ORDER ADD,1,S1,Sell,30,4.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 30);
@@ -180,7 +180,7 @@ TEST(FeedHandler, SelectedSymbolOrderAddBuy) {
         CREATE_SYMBOL_TEST_HANDLER(test_symbol_1);
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
@@ -195,7 +195,7 @@ TEST(FeedHandler, OrderAddBuyDuplicate) {
         CREATE_DEFAULT_TEST_HANDLER;
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
@@ -204,7 +204,7 @@ TEST(FeedHandler, OrderAddBuyDuplicate) {
         ASSERT_TRUE(a_test_object.errors.empty());
         a_handler.process_command("ORDER ADD,1,S1,Sell,30,4.33");
         ASSERT_EQ(a_test_object.errors.size(), 1);
-        auto order_2 = a_handler.get_order(test_symbol_1,1);
+        auto order_2 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_2.first);
         ASSERT_EQ(order_2.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_2.second.quantity, 20);
@@ -222,13 +222,13 @@ TEST(FeedHandler, OrderAddBuyTwoSymbols) {
         ASSERT_TRUE(a_test_object.output.empty());
         ASSERT_EQ(a_test_object.errors.size(), 0);
 
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 20);
         ASSERT_EQ(order_1.second.price, 3.33);
 
-        auto order_2 = a_handler.get_order(test_symbol_2,1);
+        auto order_2 = a_handler.get_order(test_symbol_2, 1);
         ASSERT_TRUE(order_2.first);
         ASSERT_EQ(order_2.second.side, tbricks_test::side_t::sell);
         ASSERT_EQ(order_2.second.quantity, 30);
@@ -243,7 +243,7 @@ TEST(FeedHandler, OrderModifyBuy) {
         CREATE_DEFAULT_TEST_HANDLER;
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         ASSERT_TRUE(order_1.first);
         ASSERT_TRUE(a_test_object.errors.empty());
@@ -254,13 +254,12 @@ TEST(FeedHandler, OrderModifyBuy) {
         a_handler.process_command("ORDER MODIFY,1,30,4.01");
         PRINT_CALLBACK_ERRORS;
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
-        order_1 = a_handler.get_order(test_symbol_1,1);
+        order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 4.01);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -272,7 +271,7 @@ TEST(FeedHandler, OrderCancelBuy) {
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         PRINT_CALLBACK_ERRORS;
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         ASSERT_TRUE(order_1.first);
         ASSERT_TRUE(a_test_object.errors.empty());
@@ -283,7 +282,7 @@ TEST(FeedHandler, OrderCancelBuy) {
         a_handler.process_command("ORDER MODIFY,1,30,4.01");
         PRINT_CALLBACK_ERRORS;
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
-        order_1 = a_handler.get_order(test_symbol_1,1);
+        order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_TRUE(order_1.first);
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
@@ -293,10 +292,9 @@ TEST(FeedHandler, OrderCancelBuy) {
         a_handler.process_command("ORDER CANCEL,1");
         PRINT_CALLBACK_ERRORS;
         ASSERT_FALSE(a_handler.is_there_symbol_for_order(1));
-        order_1 = a_handler.get_order(test_symbol_1,1);
+        order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_FALSE(order_1.first);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -310,11 +308,10 @@ TEST(FeedHandler, PrintOneOrder) {
         ASSERT_TRUE(a_test_object.errors.empty());
 
         a_handler.process_command("PRINT,S1");
-        ASSERT_EQ(a_test_object.output.size(),1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
         char expected_ouput[200];
         sprintf(expected_ouput, "%-20s | %-20s", "20@3.33", "");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -331,13 +328,12 @@ TEST(FeedHandler, PrintTwoBuysPrintResults) {
         ASSERT_TRUE(a_test_object.errors.empty());
 
         a_handler.process_command("PRINT,S1");
-        ASSERT_EQ(a_test_object.output.size(),2);
+        ASSERT_EQ(a_test_object.output.size(), 2);
         char expected_ouput[200];
         sprintf(expected_ouput, "%-20s | %-20s", "5@12", "");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
         sprintf(expected_ouput, "%-20s | %-20s", "50@10", "");
-        ASSERT_STREQ(a_test_object.output[1].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[1].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -359,13 +355,12 @@ TEST(FeedHandler, PrintTwoSalesPrintResults) {
         ASSERT_TRUE(a_test_object.errors.empty());
 
         a_handler.process_command("PRINT,S1");
-        ASSERT_EQ(a_test_object.output.size(),2);
+        ASSERT_EQ(a_test_object.output.size(), 2);
         char expected_ouput[200];
         sprintf(expected_ouput, "%-20s | %-20s", "5@12.33", "50@10.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
         sprintf(expected_ouput, "%-20s | %-20s", "50@10.2", "5@12");
-        ASSERT_STREQ(a_test_object.output[1].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[1].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -382,13 +377,12 @@ TEST(FeedHandler, PrintTwoBothPrintResults) {
         ASSERT_TRUE(a_test_object.errors.empty());
 
         a_handler.process_command("PRINT,S1");
-        ASSERT_EQ(a_test_object.output.size(),2);
+        ASSERT_EQ(a_test_object.output.size(), 2);
         char expected_ouput[200];
         sprintf(expected_ouput, "%-20s | %-20s", "", "50@10.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
         sprintf(expected_ouput, "%-20s | %-20s", "", "5@12");
-        ASSERT_STREQ(a_test_object.output[1].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[1].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -408,21 +402,20 @@ TEST(FeedHandler, BBOBuyOnly) {
         a_handler.process_command("SUBSCRIBE BBO,S1");
         ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 1);
         ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 1);
-        ASSERT_EQ(a_test_object.output.size(),1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
         char expected_ouput[200];
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "5@12", "");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
 
         a_test_object.output.clear();
         a_handler.process_command("ORDER ADD,5,S1,Buy,4,14.1");
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "4@14.1", "");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
 
         a_test_object.output.clear();
         a_handler.process_command("ORDER ADD,6,S1,Buy,5,14.1");
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "9@14.1", "");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -442,21 +435,20 @@ TEST(FeedHandler, BBOSellOnly) {
         a_handler.process_command("SUBSCRIBE BBO,S1");
         ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 1);
         ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 1);
-        ASSERT_EQ(a_test_object.output.size(),1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
         char expected_ouput[200];
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "", "50@10.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
 
         a_test_object.output.clear();
         a_handler.process_command("ORDER ADD,5,S1,Sell,4,9.1");
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "", "4@9.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
 
         a_test_object.output.clear();
         a_handler.process_command("ORDER ADD,6,S1,Sell,5,9.1");
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s", "S1", "", "9@9.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -480,12 +472,11 @@ TEST(FeedHandler, BBOBuyAndSell) {
         a_handler.process_command("SUBSCRIBE BBO,S1");
         ASSERT_EQ(a_handler.get_total_number_bbo_subs(), 1);
         ASSERT_EQ(a_handler.get_bbo_subs_number("S1"), 1);
-        ASSERT_EQ(a_test_object.output.size(),1);
+        ASSERT_EQ(a_test_object.output.size(), 1);
         char expected_ouput[200];
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s",
                 "S1", "5@12", "50@10.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
-
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -553,7 +544,7 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         char expected_ouput[200];
         sprintf(expected_ouput, "BBO: %-10s%-20s | %-20s",
                 "S1", "20@10.1", "20@10.1");
-        ASSERT_STREQ(a_test_object.output[0].c_str(),expected_ouput);
+        ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
         a_test_object.output.clear();
 
         a_handler.process_command("UNSUBSCRIBE BBO,S1");
@@ -573,7 +564,6 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         a_handler.process_command("ORDER ADD,4,S1,Sell,20,10.1");
         ASSERT_TRUE(a_test_object.output.empty());
         ASSERT_TRUE(a_test_object.errors.empty());
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -602,7 +592,6 @@ TEST(FeedHandler, VWAPBuyOnly) {
                 << " <" << 72.82 <<  ",NIL>";
         ASSERT_STREQ(a_test_object.output[0].c_str(),
                 expected_ouput.str().c_str());
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -668,7 +657,7 @@ TEST(FeedHandler, SelectedSymbolOrderAddBuy2) {
         CREATE_SYMBOL_TEST_HANDLER(test_symbol_2);
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
         ASSERT_TRUE(a_test_object.output.empty());
-        auto order_1 = a_handler.get_order(test_symbol_1,1);
+        auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_FALSE(order_1.first);
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -716,7 +705,6 @@ TEST(OrderBook, AddOrder1) {
             ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
             ASSERT_EQ(order_1.second.quantity, 20);
             ASSERT_EQ(order_1.second.price, 3.33);
-
         }
     } catch (std::exception& e) {
         FAIL() << e.what();
@@ -896,7 +884,6 @@ TEST(OrderBook, BBO) {
         ASSERT_EQ(bbo.sell.first, true);
         ASSERT_EQ(bbo.sell.second.volume, 25);
         ASSERT_EQ(bbo.sell.second.price, 10);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -919,7 +906,6 @@ TEST(OrderBook, BBOBuyOnly) {
         ASSERT_EQ(bbo.buy.second.price, 12);
 
         ASSERT_EQ(bbo.sell.first, false);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -942,7 +928,6 @@ TEST(OrderBook, BBOSellOnly) {
         ASSERT_EQ(bbo.sell.first, true);
         ASSERT_EQ(bbo.sell.second.volume, 25);
         ASSERT_EQ(bbo.sell.second.price, 10);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -974,7 +959,6 @@ TEST(OrderBook, ModifyOrder1) {
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 50);
         ASSERT_EQ(order_1.second.price, 70.);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -1006,7 +990,6 @@ TEST(OrderBook, ModifyOrder2) {
         ASSERT_EQ(order_1.second.side, tbricks_test::side_t::sell);
         ASSERT_EQ(order_1.second.quantity, 50);
         ASSERT_EQ(order_1.second.price, 70.);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -1075,7 +1058,6 @@ TEST(OrderBook, VWAPBuyOnly) {
         ASSERT_EQ(vwap.buy.valid, true);
         ASSERT_EQ(vwap.buy.price, 72.815);
         ASSERT_EQ(vwap.sell.valid, false);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -1102,7 +1084,6 @@ TEST(OrderBook, VWAPSellOnly) {
         ASSERT_EQ(vwap.buy.valid, false);
         ASSERT_EQ(vwap.sell.valid, true);
         ASSERT_EQ(vwap.sell.price, 150.);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -1133,7 +1114,6 @@ TEST(OrderBook, VWAPBuyAndSell) {
         ASSERT_EQ(vwap.buy.price, 72.815);
         ASSERT_EQ(vwap.sell.valid, true);
         ASSERT_EQ(vwap.sell.price, 150.);
-
     } catch (std::exception& e) {
         FAIL() << e.what();
     }

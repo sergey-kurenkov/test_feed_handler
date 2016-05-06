@@ -87,7 +87,7 @@ feed_handler::process_command(const std::string& line) {
         print(line);
         break;
     case command_t::print_full:
-        //print_full(line);
+        //  print_full(line);
         break;
     default:
         err_callback(line, "not implemented");
@@ -111,7 +111,7 @@ feed_handler::process_order_add(const std::string& line) {
         err_callback(line, "invalid number of parameters");
         return;
     }
-    order_id_t id ;
+    order_id_t id;
     if (!str_to_order_id(args[0], &id)) {
         err_callback(line, "invalid order id");
         return;
@@ -164,7 +164,7 @@ feed_handler::process_order_modify(const std::string& line) {
         err_callback(line, "invalid number of parameters");
         return;
     }
-    order_id_t id ;
+    order_id_t id;
     if (!str_to_order_id(args[0], &id)) {
         err_callback(line, "invalid order id");
         return;
@@ -208,7 +208,7 @@ feed_handler::process_order_cancel(const std::string& line) {
         err_callback(line, "invalid number of parameters");
         return;
     }
-    order_id_t id ;
+    order_id_t id;
     if (!str_to_order_id(args[0], &id)) {
         err_callback(line, "invalid order id");
         return;
@@ -551,7 +551,7 @@ feed_handler::parse_args(const std::string& line,
     std::string token;
     bool command_skipped = false;
     unsigned parsed_args = 0;
-    while(std::getline(ss, token, ',') && parsed_args <= number_args) {
+    while (std::getline(ss, token, ',') && parsed_args <= number_args) {
         if (!command_skipped) {
             command_skipped = true;
             continue;
@@ -596,11 +596,11 @@ feed_handler::str_to_symbol(const std::string& token, symbol_t* symbol) {
  */
 bool tbricks_test::
 feed_handler::str_to_side(const std::string& token, side_t* side) {
-    if ( token == "Buy") {
+    if ( token == "Buy" ) {
         *side = side_t::buy;
         return true;
     }
-    if ( token == "Sell") {
+    if ( token == "Sell" ) {
         *side = side_t::sell;
         return true;
     }
@@ -942,9 +942,9 @@ tbricks_test::optional_order tbricks_test::order_book::get_order(
         order_id_t id) const {
     auto itr = orders.find(id);
     if (itr == orders.end()) {
-        return std::make_pair(false,order_t());
+        return std::make_pair(false, order_t());
     } else {
-        return std::make_pair(true,itr->second);
+        return std::make_pair(true, itr->second);
     }
 }
 
@@ -960,8 +960,8 @@ void tbricks_test::order_book::get_price_levels(
                 get_volume_price(bids_itr->first, bids_itr->second);
         volume_price_t sale_volume_price_level =
                 get_volume_price(sales_itr->first, sales_itr->second);
-        callback(std::make_pair(true,bid_volume_price_level),
-                std::make_pair(true,sale_volume_price_level));
+        callback(std::make_pair(true, bid_volume_price_level),
+                std::make_pair(true, sale_volume_price_level));
         ++bids_itr;
         ++sales_itr;
     }
@@ -970,8 +970,8 @@ void tbricks_test::order_book::get_price_levels(
         volume_price_t bid_volume_price_level =
                 get_volume_price(bids_itr->first, bids_itr->second);
         volume_price_t sale_volume_price_level;
-        callback(std::make_pair(true,bid_volume_price_level),
-                std::make_pair(false,sale_volume_price_level));
+        callback(std::make_pair(true, bid_volume_price_level),
+                std::make_pair(false, sale_volume_price_level));
         ++bids_itr;
     }
 
@@ -979,8 +979,8 @@ void tbricks_test::order_book::get_price_levels(
         volume_price_t bid_volume_price_level;
         volume_price_t sale_volume_price_level =
                 get_volume_price(sales_itr->first, sales_itr->second);
-        callback(std::make_pair(false,bid_volume_price_level),
-                std::make_pair(true,sale_volume_price_level));
+        callback(std::make_pair(false, bid_volume_price_level),
+                std::make_pair(true, sale_volume_price_level));
         ++sales_itr;
     }
 }
@@ -992,7 +992,7 @@ tbricks_test::volume_price_t
 tbricks_test::
 order_book::get_volume_price(double price, const order_ids_t& order_ids) const {
     quantity_t total = 0;
-    for(auto const & id : order_ids) {
+    for (auto const & id : order_ids) {
         auto itr = orders.find(id);
         assert(itr != orders.end());
         if (itr != orders.end()) {
