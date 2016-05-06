@@ -67,6 +67,14 @@ struct get_price_levels_t {
                 "; ERR: " << err.second << std::endl; \
         }
 
+#define CHECK_INVALID_NUMBER_OF_PARAMS \
+        ASSERT_TRUE(a_test_object.output.empty()); \
+        ASSERT_FALSE(a_test_object.errors.empty()); \
+        ASSERT_EQ(a_test_object.errors.size(), 1); \
+        ASSERT_TRUE(a_test_object.errors[0].second. \
+                find("invalid number of parameters") != \
+                a_test_object.errors[0].second.npos);
+
 /*
  *
  */
@@ -140,6 +148,66 @@ TEST(FeedHandler, IncorrectOrder) {
                 incorrect_line);
         ASSERT_STREQ(a_test_object.errors[0].second.c_str(),
                 "incorrect command");
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderAddFewParams) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy,20");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        ASSERT_EQ(a_test_object.errors.size(), 1);
+        ASSERT_TRUE(a_test_object.errors[0].second.
+                find("invalid number of parameters") !=
+                a_test_object.errors[0].second.npos);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderAddFewParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        ASSERT_EQ(a_test_object.errors.size(), 1);
+        ASSERT_TRUE(a_test_object.errors[0].second.
+                find("invalid number of parameters") !=
+                a_test_object.errors[0].second.npos);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderAddMoreParams) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33,1");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        ASSERT_EQ(a_test_object.errors.size(), 1);
+        ASSERT_TRUE(a_test_object.errors[0].second.
+                find("invalid number of parameters") !=
+                a_test_object.errors[0].second.npos);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderAddMoreParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33,1,2");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_FALSE(a_test_object.errors.empty());
+        ASSERT_EQ(a_test_object.errors.size(), 1);
+        ASSERT_TRUE(a_test_object.errors[0].second.
+                find("invalid number of parameters") !=
+                a_test_object.errors[0].second.npos);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -238,6 +306,26 @@ TEST(FeedHandler, OrderAddBuyTwoSymbols) {
     }
 }
 
+TEST(FeedHandler, OrderModifyInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER MODIFY,1,30");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderModifyInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER MODIFY,S1,1,30,4.01");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, OrderModifyBuy) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
@@ -260,6 +348,26 @@ TEST(FeedHandler, OrderModifyBuy) {
         ASSERT_EQ(order_1.second.side, test_ns::side_t::buy);
         ASSERT_EQ(order_1.second.quantity, 30);
         ASSERT_EQ(order_1.second.price, 4.01);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderCancelInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER CANCEL");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, OrderCancelInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER CANCEL,S1,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -295,6 +403,26 @@ TEST(FeedHandler, OrderCancelBuy) {
         order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
         ASSERT_FALSE(order_1.first);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("PRINT,S1,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("PRINT");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -383,6 +511,26 @@ TEST(FeedHandler, PrintTwoBothPrintResults) {
         ASSERT_STREQ(a_test_object.output[0].c_str(), expected_ouput);
         sprintf(expected_ouput, "%-20s | %-20s", "", "5@12");
         ASSERT_STREQ(a_test_object.output[1].c_str(), expected_ouput);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, SubsBBOInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("SUBSCRIBE BBO");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, SubsBBOInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("SUBSCRIBE BBO,S1,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
@@ -482,6 +630,26 @@ TEST(FeedHandler, BBOBuyAndSell) {
     }
 }
 
+TEST(FeedHandler, UnsubsBBOInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("UNSUBSCRIBE BBO");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, UnsubsBBOInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("UNSUBSCRIBE BBO,S1,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, UnsubsBBO) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
@@ -568,6 +736,25 @@ TEST(FeedHandler, SubsAddOrderUnsubsBBO) {
         FAIL() << e.what();
     }
 }
+TEST(FeedHandler, SubsVWAPInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("SUBSCRIBE VWAP,S1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, SubsVWAPInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("SUBSCRIBE VWAP,S1,5,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
 
 TEST(FeedHandler, VWAPBuyOnly) {
     try {
@@ -592,6 +779,25 @@ TEST(FeedHandler, VWAPBuyOnly) {
                 << " <" << 72.82 <<  ",NIL>";
         ASSERT_STREQ(a_test_object.output[0].c_str(),
                 expected_ouput.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+TEST(FeedHandler, UnsubsVWAPInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("UNSUBSCRIBE VWAP,S1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, UnsubsVWAPInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("UNSUBSCRIBE VWAP,S1,5,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
     } catch (std::exception& e) {
         FAIL() << e.what();
     }
