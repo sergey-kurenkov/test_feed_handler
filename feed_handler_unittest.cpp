@@ -564,6 +564,197 @@ TEST(FeedHandler, PrintTwoBothPrintResults) {
     }
 }
 
+TEST(FeedHandler, PrintFullInvalidNumParams1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("PRINT_FULL,S1,1");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullInvalidNumParams2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("PRINT_FULL");
+        CHECK_INVALID_NUMBER_OF_PARAMS;
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullEmpty) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 0);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+static void format_column(std::ostringstream &ss) {
+    ss << std::left << std::setw(10);
+};
+
+static void format_number(std::ostringstream &ss, unsigned value) {
+    format_column(ss);
+    ss << value;
+};
+
+static void format_quantity(std::ostringstream &ss,
+                               test_ns::quantity_t value) {
+    format_column(ss);
+    ss << value;
+};
+
+static void format_double(std::ostringstream &ss, double value) {
+    format_column(ss);
+    ss << value;
+};
+
+static void format_spaces(std::ostringstream &ss, unsigned times) {
+    for (auto i = 0U; i < times; ++i) {
+        format_column(ss);
+        ss << ' ';
+    }
+};
+
+TEST(FeedHandler, PrintFullBuy1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy,100,10.");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 5);
+        std::ostringstream ss;
+        format_number(ss, 1);
+        format_quantity(ss, 100);
+        format_double(ss, 10.);
+        format_spaces(ss, 3);
+        ASSERT_STREQ(a_test_object.output[3].c_str(), ss.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullBuy2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Buy,100,10.");
+        a_handler.process_command("ORDER ADD,2,S1,Buy,200,9.");
+        a_handler.process_command("ORDER ADD,3,S1,Buy,300,10.");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 6);
+        std::ostringstream ss;
+        format_number(ss, 2);
+        format_quantity(ss, 400);
+        format_double(ss, 10.);
+        format_spaces(ss, 3);
+        ASSERT_STREQ(a_test_object.output[3].c_str(), ss.str().c_str());
+        ss.str("");
+        format_number(ss, 1);
+        format_quantity(ss, 200);
+        format_double(ss, 9.);
+        format_spaces(ss, 3);
+        ASSERT_STREQ(a_test_object.output[4].c_str(), ss.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullSell1) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Sell,100,10.");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 5);
+        std::ostringstream ss;
+        format_spaces(ss, 3);
+        format_number(ss, 1);
+        format_quantity(ss, 100);
+        format_double(ss, 10.);
+        ASSERT_STREQ(a_test_object.output[3].c_str(), ss.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullSell2) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Sell,100,10.");
+        a_handler.process_command("ORDER ADD,2,S1,Sell,200,11.");
+        a_handler.process_command("ORDER ADD,3,S1,Sell,300,10.");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 6);
+        std::ostringstream ss;
+        format_spaces(ss, 3);
+        format_number(ss, 2);
+        format_quantity(ss, 400);
+        format_double(ss, 10.);
+        ASSERT_STREQ(a_test_object.output[3].c_str(), ss.str().c_str());
+        ss.str("");
+        format_spaces(ss, 3);
+        format_number(ss, 1);
+        format_quantity(ss, 200);
+        format_double(ss, 11.);
+        ASSERT_STREQ(a_test_object.output[4].c_str(), ss.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(FeedHandler, PrintFullBuySell) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("ORDER ADD,1,S1,Sell,100,10.");
+        a_handler.process_command("ORDER ADD,2,S1,Sell,200,11.");
+        a_handler.process_command("ORDER ADD,3,S1,Sell,300,10.");
+        a_handler.process_command("ORDER ADD,4,S1,Buy,100,10.");
+        a_handler.process_command("ORDER ADD,5,S1,Buy,200,9.");
+        a_handler.process_command("ORDER ADD,6,S1,Buy,300,10.");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+
+        a_handler.process_command("PRINT_FULL,S1");
+        ASSERT_EQ(a_test_object.output.size(), 6);
+        std::ostringstream ss;
+        format_number(ss, 2);
+        format_quantity(ss, 400);
+        format_double(ss, 10.);
+        format_number(ss, 2);
+        format_quantity(ss, 400);
+        format_double(ss, 10.);
+        ASSERT_STREQ(a_test_object.output[3].c_str(), ss.str().c_str());
+        ss.str("");
+        format_number(ss, 1);
+        format_quantity(ss, 200);
+        format_double(ss, 9.);
+        format_number(ss, 1);
+        format_quantity(ss, 200);
+        format_double(ss, 11.);
+        ASSERT_STREQ(a_test_object.output[4].c_str(), ss.str().c_str());
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, SubsBBOInvalidNumParams1) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;

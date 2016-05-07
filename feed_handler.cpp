@@ -557,7 +557,7 @@ feed_handler::print_full(const symbol_t& line) const {
 
     auto format_quantity = [&ss, &format_column] (quantity_t value) {
         format_column();
-        ss << std::left << std::setw(10) << value;
+        ss << value;
     };
 
     auto format_double = [&ss, &format_column] (double value) {
