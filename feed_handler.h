@@ -195,7 +195,7 @@ class feed_handler {
     static bool str_to_side(const std::string&, side_t*);
     static bool str_to_quantity(const std::string&, quantity_t*);
     static bool str_to_price(const std::string&, double*);
-    bool should_keep_symbol(const std::string&) const;
+    bool should_handle_symbol(const std::string&) const;
     order_book& get_order_book(const std::string&);
     bool is_there_order_book(const std::string&) const;
     const order_book& get_order_book_ref(const std::string&) const;

@@ -49,7 +49,7 @@ ifeq "$(PLATFORM)" "linux"
 endif
 
 ifeq "$(PLATFORM)" "win32"
-    GTEST_DIR = ./googletest.win32/googletest
+    GTEST_DIR = ./googletest.cygwin/googletest
 endif
 
 # Where to find user code.

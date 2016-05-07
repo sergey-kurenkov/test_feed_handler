@@ -35,6 +35,18 @@ struct get_price_levels_t {
     }
 };
 
+struct get_full_orders_t {
+    using full_orders_line_t = std::vector<test_ns::full_orders_t>;
+    full_orders_line_t bids;
+    full_orders_line_t asks;
+    void operator()(const test_ns::full_orders_t& bid,
+            const test_ns::full_orders_t& ask) {
+        bids.push_back(bid);
+        asks.push_back(ask);
+    }
+};
+
+
 /*
  *
  */
@@ -258,6 +270,22 @@ TEST(FeedHandler, SelectedSymbolOrderAddBuy) {
     }
 }
 
+TEST(FeedHandler, SelectedSymbolPrint) {
+    try {
+        CREATE_SYMBOL_TEST_HANDLER(test_symbol_1);
+        a_handler.process_command("PRINT,S2");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+        a_handler.process_command("ORDER ADD,1,S2,Buy,20,3.33");
+        a_handler.process_command("PRINT,S2");
+        PRINT_CALLBACK_ERRORS;
+        ASSERT_TRUE(a_test_object.errors.empty());
+        ASSERT_TRUE(a_test_object.errors.empty());
+    } catch (std::exception& e) {
+        FAIL() << "Exception caught: " << e.what();
+    }
+}
+
 TEST(FeedHandler, OrderAddBuyDuplicate) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
@@ -353,7 +381,6 @@ TEST(FeedHandler, OrderModifyBuy) {
         ASSERT_EQ(order_1.second.price, 3.33);
 
         a_handler.process_command("ORDER MODIFY,1,30,4.01");
-        PRINT_CALLBACK_ERRORS;
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
@@ -403,7 +430,6 @@ TEST(FeedHandler, OrderCancelBuy) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
         a_handler.process_command("ORDER ADD,1,S1,Buy,20,3.33");
-        PRINT_CALLBACK_ERRORS;
         ASSERT_TRUE(a_test_object.output.empty());
         auto order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
@@ -414,7 +440,6 @@ TEST(FeedHandler, OrderCancelBuy) {
         ASSERT_EQ(order_1.second.price, 3.33);
 
         a_handler.process_command("ORDER MODIFY,1,30,4.01");
-        PRINT_CALLBACK_ERRORS;
         ASSERT_STREQ(a_handler.get_symbol_for_order(1).c_str(), "S1");
         order_1 = a_handler.get_order(test_symbol_1, 1);
         ASSERT_TRUE(a_test_object.errors.empty());
@@ -785,7 +810,6 @@ TEST(FeedHandler, VWAPBuyOnly) {
         ASSERT_TRUE(a_test_object.output.empty());
         ASSERT_TRUE(a_test_object.errors.empty());
         a_handler.process_command("SUBSCRIBE VWAP,S1,5");
-        PRINT_CALLBACK_ERRORS;
         std::ostringstream expected_ouput;
         expected_ouput << "VWAP: " << std::left << std::setw(10) << "S1"
                 << " <NIL,NIL>";
@@ -1343,6 +1367,173 @@ TEST(OrderBook, VWAPBuyAndSell) {
         ASSERT_EQ(vwap.buy.price, 72.815);
         ASSERT_EQ(vwap.sell.valid, true);
         ASSERT_EQ(vwap.sell.price, 150.);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullEmpty) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders_callback;
+        an_order_book.get_full_orders(std::move(get_full_orders_callback));
+        ASSERT_EQ(get_full_orders_callback.bids.size(), 0);
+        ASSERT_EQ(get_full_orders_callback.asks.size(), 0);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullBuy1) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders;
+        test_ns::get_full_orders_callback_t callback =
+                std::bind(&get_full_orders_t::operator(),
+                        &get_full_orders,
+                        std::placeholders::_1, std::placeholders::_2);
+
+        an_order_book.add_order(1, test_ns::side_t::buy, 100, 10.);
+
+        an_order_book.get_full_orders(std::move(callback));
+        ASSERT_EQ(get_full_orders.bids.size(), 1);
+        ASSERT_EQ(get_full_orders.asks.size(), 1);
+
+        ASSERT_EQ(get_full_orders.bids[0].valid, true);
+        ASSERT_EQ(get_full_orders.bids[0].orders, 1);
+        ASSERT_EQ(get_full_orders.bids[0].price, 10.);
+        ASSERT_EQ(get_full_orders.bids[0].volume, 100);
+        ASSERT_EQ(get_full_orders.asks[0].valid, false);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullBuy2) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders;
+        test_ns::get_full_orders_callback_t callback =
+                std::bind(&get_full_orders_t::operator(),
+                        &get_full_orders,
+                        std::placeholders::_1, std::placeholders::_2);
+
+        an_order_book.add_order(1, test_ns::side_t::buy, 100, 10.);
+        an_order_book.add_order(2, test_ns::side_t::buy, 200, 9.);
+        an_order_book.add_order(3, test_ns::side_t::buy, 300, 10.);
+
+        an_order_book.get_full_orders(std::move(callback));
+        ASSERT_EQ(get_full_orders.bids.size(), 2);
+        ASSERT_EQ(get_full_orders.asks.size(), 2);
+
+        ASSERT_EQ(get_full_orders.bids[0].valid, true);
+        ASSERT_EQ(get_full_orders.bids[0].orders, 2);
+        ASSERT_EQ(get_full_orders.bids[0].price, 10.);
+        ASSERT_EQ(get_full_orders.bids[0].volume, 400);
+        ASSERT_EQ(get_full_orders.bids[1].valid, true);
+        ASSERT_EQ(get_full_orders.bids[1].orders, 1);
+        ASSERT_EQ(get_full_orders.bids[1].price, 9.);
+        ASSERT_EQ(get_full_orders.bids[1].volume, 200);
+        ASSERT_EQ(get_full_orders.asks[0].valid, false);
+        ASSERT_EQ(get_full_orders.asks[1].valid, false);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullSell1) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders;
+        test_ns::get_full_orders_callback_t callback =
+                std::bind(&get_full_orders_t::operator(),
+                        &get_full_orders,
+                        std::placeholders::_1, std::placeholders::_2);
+
+        an_order_book.add_order(1, test_ns::side_t::sell, 100, 10.);
+
+        an_order_book.get_full_orders(std::move(callback));
+        ASSERT_EQ(get_full_orders.bids.size(), 1);
+        ASSERT_EQ(get_full_orders.asks.size(), 1);
+
+        ASSERT_EQ(get_full_orders.asks[0].valid, true);
+        ASSERT_EQ(get_full_orders.asks[0].orders, 1);
+        ASSERT_EQ(get_full_orders.asks[0].price, 10.);
+        ASSERT_EQ(get_full_orders.asks[0].volume, 100);
+        ASSERT_EQ(get_full_orders.bids[0].valid, false);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullSell2) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders;
+        test_ns::get_full_orders_callback_t callback =
+                std::bind(&get_full_orders_t::operator(),
+                        &get_full_orders,
+                        std::placeholders::_1, std::placeholders::_2);
+
+        an_order_book.add_order(1, test_ns::side_t::sell, 100, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 200, 11.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 300, 10.);
+        an_order_book.add_order(4, test_ns::side_t::buy, 100, 10.);
+        an_order_book.add_order(5, test_ns::side_t::buy, 200, 9.);
+        an_order_book.add_order(6, test_ns::side_t::buy, 300, 10.);
+
+        an_order_book.get_full_orders(std::move(callback));
+        ASSERT_EQ(get_full_orders.bids.size(), 2);
+        ASSERT_EQ(get_full_orders.asks.size(), 2);
+
+        ASSERT_EQ(get_full_orders.asks[0].valid, true);
+        ASSERT_EQ(get_full_orders.asks[0].orders, 2);
+        ASSERT_EQ(get_full_orders.asks[0].price, 10.);
+        ASSERT_EQ(get_full_orders.asks[0].volume, 400);
+        ASSERT_EQ(get_full_orders.asks[1].valid, true);
+        ASSERT_EQ(get_full_orders.asks[1].orders, 1);
+        ASSERT_EQ(get_full_orders.asks[1].price, 11.);
+        ASSERT_EQ(get_full_orders.asks[1].volume, 200);
+        ASSERT_EQ(get_full_orders.bids[0].valid, true);
+        ASSERT_EQ(get_full_orders.bids[0].orders, 2);
+        ASSERT_EQ(get_full_orders.bids[0].price, 10.);
+        ASSERT_EQ(get_full_orders.bids[0].volume, 400);
+        ASSERT_EQ(get_full_orders.bids[1].valid, true);
+        ASSERT_EQ(get_full_orders.bids[1].orders, 1);
+        ASSERT_EQ(get_full_orders.bids[1].price, 9.);
+        ASSERT_EQ(get_full_orders.bids[1].volume, 200);
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
+TEST(OrderBook, PrintFullBidsSells) {
+    try {
+        test_ns::order_book an_order_book{test_symbol_1};
+        get_full_orders_t get_full_orders;
+        test_ns::get_full_orders_callback_t callback =
+                std::bind(&get_full_orders_t::operator(),
+                        &get_full_orders,
+                        std::placeholders::_1, std::placeholders::_2);
+
+        an_order_book.add_order(1, test_ns::side_t::sell, 100, 10.);
+        an_order_book.add_order(2, test_ns::side_t::sell, 200, 11.);
+        an_order_book.add_order(3, test_ns::side_t::sell, 300, 10.);
+
+        an_order_book.get_full_orders(std::move(callback));
+        ASSERT_EQ(get_full_orders.bids.size(), 2);
+        ASSERT_EQ(get_full_orders.asks.size(), 2);
+
+        ASSERT_EQ(get_full_orders.asks[0].valid, true);
+        ASSERT_EQ(get_full_orders.asks[0].orders, 2);
+        ASSERT_EQ(get_full_orders.asks[0].price, 10.);
+        ASSERT_EQ(get_full_orders.asks[0].volume, 400);
+        ASSERT_EQ(get_full_orders.asks[1].valid, true);
+        ASSERT_EQ(get_full_orders.asks[1].orders, 1);
+        ASSERT_EQ(get_full_orders.asks[1].price, 11.);
+        ASSERT_EQ(get_full_orders.asks[1].volume, 200);
+        ASSERT_EQ(get_full_orders.bids[0].valid, false);
+        ASSERT_EQ(get_full_orders.bids[1].valid, false);
     } catch (std::exception& e) {
         FAIL() << e.what();
     }

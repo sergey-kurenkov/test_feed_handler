@@ -122,8 +122,7 @@ feed_handler::process_order_add(const std::string& line) {
         err_callback(line, "invalid symbol");
         return;
     }
-    if (!should_keep_symbol(symbol)) {
-        err_callback(line, "not a selected symbol: " + selected_symbol);
+    if (!should_handle_symbol(symbol)) {
         return;
     }
 
@@ -248,8 +247,7 @@ feed_handler::process_subs_bbo(const std::string& line) {
         return;
     }
 
-    if (!should_keep_symbol(symbol)) {
-        err_callback(line, "not a selected symbol: " + selected_symbol);
+    if (!should_handle_symbol(symbol)) {
         return;
     }
     ++bbo_subs[symbol];
@@ -300,8 +298,7 @@ feed_handler::process_subs_vwap(const std::string& line) {
         return;
     }
 
-    if (!should_keep_symbol(symbol)) {
-        err_callback(line, "not a selected symbol: " + selected_symbol);
+    if (!should_handle_symbol(symbol)) {
         return;
     }
 
@@ -491,7 +488,7 @@ feed_handler::print(const symbol_t& line) const {
         err_callback(line, "invalid symbol");
         return;
     }
-    if (!should_keep_symbol(symbol)) {
+    if (!should_handle_symbol(symbol)) {
         return;
     }
     if (!is_there_order_book(symbol)) {
@@ -537,7 +534,7 @@ feed_handler::print_full(const symbol_t& line) const {
         err_callback(line, "invalid symbol");
         return;
     }
-    if (!should_keep_symbol(symbol)) {
+    if (!should_handle_symbol(symbol)) {
         return;
     }
     if (!is_there_order_book(symbol)) {
@@ -580,8 +577,8 @@ feed_handler::print_full(const symbol_t& line) const {
         ss << std::setfill(' ');
     };
 
-    auto print_string = [&] () {
-        callback(ss.str());
+    auto print_string = [&ss, this] () {
+        this->callback(ss.str());
         ss.str("");
     };
 
@@ -599,7 +596,8 @@ feed_handler::print_full(const symbol_t& line) const {
     separate_line();
     print_string();
 
-    auto print_orders = [&]
+    auto print_orders = [&format_number, &format_quantity, &format_double,
+                         &format_spaces, &print_string]
         (const full_orders_t& bid, const full_orders_t& ask) {
         if (bid.valid) {
             format_number(bid.orders);
@@ -721,7 +719,7 @@ feed_handler::is_there_selected_symbol() const {
  *
  */
 bool test_ns::
-feed_handler::should_keep_symbol(const std::string& symbol) const {
+feed_handler::should_handle_symbol(const std::string& symbol) const {
     if (selected_symbol.empty()) {
         return true;
     } else {
@@ -836,7 +834,7 @@ feed_handler::get_selected_symbol() const {
 test_ns::optional_order
 test_ns::feed_handler::get_order(const symbol_t& symbol,
         order_id_t id) const {
-    if (!should_keep_symbol(symbol)) {
+    if (!should_handle_symbol(symbol)) {
         return test_ns::optional_order{false, order_t()};
     }
     if (!is_there_order_book(id)) {
