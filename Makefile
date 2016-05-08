@@ -63,8 +63,9 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include
 # Flags passed to the C++ compiler.
 ifeq "$(PLATFORM)" "linux"
     CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread
+    LDFLAGS += -lthread
 else
-    CXXFLAGS += -std=gnu++0x -g -Wall -Wextra -pthread
+    CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra
 endif
 
 # All tests produced by this Makefile.  Remember to add new tests you
@@ -125,10 +126,10 @@ feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler_unittest.cpp
 
 md_replay_unittest : feed_handler.o feed_handler_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@ $(RPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
 md_replay : md_replay.o feed_handler.o
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@ $(RPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
 test: all
 	./md_replay_unittest
