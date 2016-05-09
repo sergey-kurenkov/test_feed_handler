@@ -120,8 +120,9 @@ class order_book {
     void cancel_order(order_id_t id);
     void get_price_levels(get_price_levels_callback_t&&) const;
     void get_full_orders(get_full_orders_callback_t&&) const;
-    void get_bbo(bbo_t*) const;
+    void get_bbo(bbo_t* best_bid_offer) const;
     void get_vwap(quantity_t, vwap_t*) const;
+
  private:
     using orders_t = std::unordered_map<order_id_t, order_t>;
     using order_ids_t = std::set<order_id_t>;
