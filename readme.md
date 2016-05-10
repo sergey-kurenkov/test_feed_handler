@@ -26,5 +26,5 @@ the output must be filtered to show results only for a given
 instrument.
 
 
-Full task description: https://github.com/skwllsp/test_feed_handler/blob/master/readme.txt
+Full task description: https://github.com/skwllsp/test_feed_handler/blob/master/task.txt
 
