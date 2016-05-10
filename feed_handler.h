@@ -99,7 +99,7 @@ struct vwap_t {
  */
 struct full_orders_t {
     bool valid;
-    unsigned orders;
+    size_t orders;
     quantity_t volume;
     double price;
 };
