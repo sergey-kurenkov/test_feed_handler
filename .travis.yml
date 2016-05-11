@@ -1,5 +1,5 @@
+sudo: false
 language: cpp
-
 compiler:
   - gcc
 
@@ -8,6 +8,7 @@ before_install:
   
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
 addons:
   apt:
     sources:
@@ -15,10 +16,23 @@ addons:
     packages:
     - gcc-4.8
     - g++-4.8
+    - python-yaml
+    - lcov
 
 script:
   - make & make test & make coverage
 
-
 after_success:
-  - coveralls --gcov-options '\-lp'
+  # Copying Coveralls data to a separate folder
+  - mkdir -p $TRAVIS_BUILD_DIR/coverals
+  - find . -name "*.gcda" -exec cp "{}" $TRAVIS_BUILD_DIR/coverals/ \;
+  - find . -name "*.gcno" -exec cp "{}" $TRAVIS_BUILD_DIR/coverals/ \;
+  
+  - lcov --directory $TRAVIS_BUILD_DIR/coverals --base-directory ./ --capture --output-file $TRAVIS_BUILD_DIR/coverals/coverage.info
+  - lcov --remove $TRAVIS_BUILD_DIR/coverals/coverage.info "/usr*" -o $TRAVIS_BUILD_DIR/coverals/coverage.info
+
+  # Sending data to Coveralls
+  - cd $TRAVIS_BUILD_DIR
+  - gem install coveralls-lcov
+  - coveralls-lcov coverals/coverage.info
+  

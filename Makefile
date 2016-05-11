@@ -101,8 +101,9 @@ coverage: $(BUILD_DIR) $(TESTS)
 	$(BUILD_DIR)/md_replay_coverage
 
 coverage-report:
-	make coverage
-	gcov -o ./build.coverage feed_handler.cpp
+	make coverage >/dev/null
+	gcov -o ./build.coverage feed_handler.cpp | head
+	find . -name feed_handler.cpp.gcov -prune -o -name "*.gcov" -exec rm '{}' \;
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
