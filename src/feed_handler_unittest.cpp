@@ -149,6 +149,20 @@ TEST(FeedHandler, CreateWithTestCallbackWithSymbol) {
     }
 }
 
+TEST(FeedHandler, EmptyCmd) {
+    try {
+        CREATE_DEFAULT_TEST_HANDLER;
+        a_handler.process_command("");
+        ASSERT_TRUE(a_test_object.output.empty());
+        ASSERT_EQ(a_test_object.errors.size(), 1);
+        ASSERT_STREQ(a_test_object.errors[0].first.c_str(),"");
+        ASSERT_STREQ(a_test_object.errors[0].second.c_str(),
+                "incorrect command");
+    } catch (std::exception& e) {
+        FAIL() << e.what();
+    }
+}
+
 TEST(FeedHandler, IncorrectOrder) {
     try {
         CREATE_DEFAULT_TEST_HANDLER;
