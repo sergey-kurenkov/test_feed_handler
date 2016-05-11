@@ -15,7 +15,7 @@
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
 
-.PHONY: all test
+.PHONY: all test coverage coverage-report
 
 PLATFORM=UNKNOWN_OS
 ifeq ($(shell uname), Linux)
@@ -53,7 +53,7 @@ ifeq "$(PLATFORM)" "win32"
 endif
 
 # Where to find user code.
-USER_DIR = .
+USER_DIR = ./src
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -68,9 +68,21 @@ else
     CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra
 endif
 
-# All tests produced by this Makefile.  Remember to add new tests you
-# created to the list.
-TESTS = md_replay md_replay_unittest
+BUILD_DIR = ./build
+TESTS = $(BUILD_DIR)/md_replay
+
+ifeq ($(MAKECMDGOALS),test)
+	BUILD_DIR = ./build.test
+	TESTS = $(BUILD_DIR)/md_replay_unittest
+endif
+
+ifeq ($(MAKECMDGOALS),coverage)
+	BUILD_DIR = ./build.coverage
+	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
+	TESTS = $(BUILD_DIR)/md_replay_coverage
+endif
+
+GCOV_DIR = ./gcov.report
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -79,10 +91,26 @@ GTEST_HEADERS = $(wildcard $(GTEST_DIR)/include/gtest/*.h) \
 
 # House-keeping build targets.
 
-all : $(TESTS)
+all : $(BUILD_DIR)
+	make $(BUILD_DIR)/md_replay
+
+test: $(BUILD_DIR) $(TESTS)
+	$(BUILD_DIR)/md_replay_unittest
+
+coverage: $(BUILD_DIR) $(TESTS)
+	$(BUILD_DIR)/md_replay_coverage
+
+coverage-report:
+	make coverage
+	gcov -o ./build.coverage feed_handler.cpp
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o
+	rm -fr ./build ./build.test ./build.coverage $(GCOV_DIR)
+
+
 
 # Builds gtest.a and gtest_main.a.
 
@@ -94,18 +122,18 @@ GTEST_SRCS_ = $(wildcard $(GTEST_DIR)/src/*.cc) $(wildcard $(GTEST_DIR)/src/*.h)
 # implementation details, the dependencies specified below are
 # conservative and not optimized.  This is fine as Google Test
 # compiles fast and for ordinary users its source rarely changes.
-gtest-all.o : $(GTEST_SRCS_)
-	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
+$(BUILD_DIR)/gtest-all.o : $(GTEST_SRCS_)
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -o $@ -c \
             $(GTEST_DIR)/src/gtest-all.cc
 
-gtest_main.o : $(GTEST_SRCS_)
-	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
+$(BUILD_DIR)/gtest_main.o : $(GTEST_SRCS_)
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -o $@ -c \
             $(GTEST_DIR)/src/gtest_main.cc
 
-gtest.a : gtest-all.o
+$(BUILD_DIR)/gtest.a : $(BUILD_DIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gtest_main.a : gtest-all.o gtest_main.o
+$(BUILD_DIR)/gtest_main.a : $(BUILD_DIR)/gtest-all.o $(BUILD_DIR)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 # Builds a sample test.  A test should link with either gtest.a or
@@ -115,21 +143,23 @@ gtest_main.a : gtest-all.o gtest_main.o
 RPATH = -Wl,-rpath,$(shell dirname $(shell which $(CXX)))/../lib64
 
 
-feed_handler.o : $(USER_DIR)/feed_handler.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler.cpp
+$(BUILD_DIR)/feed_handler.o : $(USER_DIR)/feed_handler.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $(USER_DIR)/feed_handler.cpp
 
-md_replay.o : $(USER_DIR)/md_replay.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/md_replay.cpp
+$(BUILD_DIR)/md_replay.o : $(USER_DIR)/md_replay.cpp $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $(USER_DIR)/md_replay.cpp
 
-feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
+$(BUILD_DIR)/feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
                      $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/feed_handler_unittest.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $(USER_DIR)/feed_handler_unittest.cpp
 
-md_replay_unittest : feed_handler.o feed_handler_unittest.o gtest_main.a
+$(BUILD_DIR)/md_replay_unittest : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-md_replay : md_replay.o feed_handler.o
+$(BUILD_DIR)/md_replay : $(BUILD_DIR)/md_replay.o $(BUILD_DIR)/feed_handler.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-test: all
-	./md_replay_unittest
+$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
+
+

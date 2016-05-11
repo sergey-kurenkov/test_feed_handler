@@ -5,6 +5,9 @@ language: cpp
 compiler:
   - gcc
 
+before_install:
+  - pip install --user cpp-coveralls
+  
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 addons:
@@ -16,4 +19,8 @@ addons:
     - g++-4.8
 
 script:
-  - make & make test
+  - make & make test & make coverage
+
+
+after_success:
+  - coveralls --gcov-options '\-lp'
