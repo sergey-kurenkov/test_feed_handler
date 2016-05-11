@@ -82,7 +82,7 @@ ifeq ($(MAKECMDGOALS),coverage)
 	TESTS = $(BUILD_DIR)/md_replay_coverage
 endif
 
-GCOV_DIR = ./gcov.report
+TRAVIS_BUILD_DIR=$(PWD)
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -101,15 +101,19 @@ coverage: $(BUILD_DIR) $(TESTS)
 	$(BUILD_DIR)/md_replay_coverage
 
 coverage-report:
-	make coverage >/dev/null
-	gcov -o ./build.coverage feed_handler.cpp | head
-	find . -name feed_handler.cpp.gcov -prune -o -name "*.gcov" -exec rm '{}' \;
+	make coverage
+	mkdir -p $(TRAVIS_BUILD_DIR)/coverals
+	find . -name "*.gcda" -exec cp "{}" $(TRAVIS_BUILD_DIR)/coverals/ \;
+	find . -name "*.gcno" -exec cp "{}" $(TRAVIS_BUILD_DIR)/coverals/ \;
+	lcov --directory $(TRAVIS_BUILD_DIR)/coverals --base-directory ./ --capture --output-file $(TRAVIS_BUILD_DIR)/coverals/coverage.info
+	lcov --remove $(TRAVIS_BUILD_DIR)/coverals/coverage.info "/usr*" -o $(TRAVIS_BUILD_DIR)/coverals/coverage.info
+	genhtml -o $(TRAVIS_BUILD_DIR)/coverals -t "test_feed_handler" --num-spaces 4 $(TRAVIS_BUILD_DIR)/coverals/coverage.info
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 clean :
-	rm -fr ./build ./build.test ./build.coverage $(GCOV_DIR)
+	rm -fr ./build ./build.test ./build.coverage $(TRAVIS_BUILD_DIR)/coverals
 
 
 
