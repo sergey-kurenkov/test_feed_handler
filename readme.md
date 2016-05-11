@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/skwllsp/test_feed_handler.png)](https://travis-ci.org/skwllsp/test_feed_handler)
+[![Coverage Status](https://coveralls.io/repos/skwllsp/test_feed_handler/badge.svg)](https://coveralls.io/r/skwllsp/test_feed_handler)
 
 
 ## SYNOPSIS
