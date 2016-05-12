@@ -79,7 +79,7 @@ endif
 ifeq ($(MAKECMDGOALS),coverage)
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
-	TESTS = $(BUILD_DIR)/md_replay_coverage
+	TESTS = $(BUILD_DIR)/md_replay_coverage $(BUILD_DIR)/feed_handler_coverage
 endif
 
 TRAVIS_BUILD_DIR=$(PWD)
@@ -98,7 +98,7 @@ test: $(BUILD_DIR) $(TESTS)
 	$(BUILD_DIR)/md_replay_unittest
 
 coverage: $(BUILD_DIR) $(TESTS)
-	$(BUILD_DIR)/md_replay_coverage
+	./build.coverage/feed_handler_coverage
 
 coverage-report:
 	make coverage
@@ -164,7 +164,9 @@ $(BUILD_DIR)/md_replay_unittest : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_
 $(BUILD_DIR)/md_replay : $(BUILD_DIR)/md_replay.o $(BUILD_DIR)/feed_handler.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+$(BUILD_DIR)/feed_handler_coverage : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
+$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/md_replay.o $(BUILD_DIR)/feed_handler.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 

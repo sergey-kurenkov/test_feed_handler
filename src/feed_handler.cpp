@@ -879,7 +879,7 @@ void test_ns::print_to_stdout(const std::string& s) {
  */
 void test_ns::print_to_stderr(
         const std::string& line, const std::string& err) {
-    std::cerr << "error: " << err << "line: " << line << '\n';
+    std::cerr << "error: " << err << ", line: " << line << '\n';
 }
 
 /*
