@@ -24,8 +24,5 @@ $ md_replay <file> [<symbol>]
 If <symbol> is omitted, the application must print all data
 as dictated by the market data control sequence. Otherwise,
 the output must be filtered to show results only for a given
-instrument.
-
-
-Full task description: https://github.com/skwllsp/test_feed_handler/blob/master/task.txt
+instrument. [Read the whole assignment in the text.txt file](https://github.com/skwllsp/test_feed_handler/blob/master/task.txt)
 
