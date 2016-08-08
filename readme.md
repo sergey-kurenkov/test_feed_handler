@@ -5,7 +5,6 @@
 ## SYNOPSIS
 
 
-
 Write up a console application able to parse and process a file with market data feed control sequence.
 
 ### SYNTAX
